@@ -1,6 +1,21 @@
 use std::io;
+use std::env;
 
 fn main() {
+    let mut args: Vec<String> = env::args().collect();
+    if args.len() != 2 {
+        panic!("Usage: {} <id>", args.remove(0));
+    }
+    let id = args.remove(1);
+    let id = id.as_str();
+    let result = match id {
+        "01a" => calc01a(),
+        _ => panic!("Unknown ID {}", id),
+    };
+    println!("{} -> {}", id, result);
+}
+
+fn calc01a() -> i32 {
     let mut line = String::new();
     let stdin = io::stdin();
     let mut tot = 0;
@@ -28,5 +43,5 @@ fn main() {
         let dd = d1 * 10 + d2;
         tot += dd;
     }
-    println!("{}", tot);
+    tot
 }
