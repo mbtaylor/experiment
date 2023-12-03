@@ -5,3 +5,4 @@ datadir=../../data
 cargo run 01a <$datadir/advent1.txt
 cargo run 01b <$datadir/advent1.txt
 cargo run 02a <$datadir/advent2.txt
+cargo run 02b <$datadir/advent2.txt

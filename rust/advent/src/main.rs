@@ -1,5 +1,6 @@
 use std::io;
 use std::env;
+use std::cmp;
 use regex::Regex;
 
 fn main() {
@@ -13,6 +14,7 @@ fn main() {
         "01a" => calc01a(read_lines()),
         "01b" => calc01b(read_lines()),
         "02a" => calc02a(read_lines()),
+        "02b" => calc02b(read_lines()),
         _ => panic!("Unknown ID {}", id),
     };
     println!("{} -> {}", id, result);
@@ -83,16 +85,25 @@ struct Game {
     samples: Vec<Sample>,
 }
 
-impl Bag {
-    fn is_possible(&self, game: &Game) -> bool {
-        for sample in &game.samples {
-            if sample.0 > self.0 ||
-               sample.1 > self.1 ||
-               sample.2 > self.2 {
+impl Game {
+    fn is_possible(&self, bag: &Bag) -> bool {
+        for sample in &self.samples {
+            if sample.0 > bag.0 ||
+               sample.1 > bag.1 ||
+               sample.2 > bag.2 {
                 return false;
             }
         }
         true
+    }
+    fn min_bag(&self) -> Bag {
+        let mut bag = Bag(0, 0, 0);
+        for sample in &self.samples {
+            bag.0 = cmp::max(bag.0, sample.0);
+            bag.1 = cmp::max(bag.1, sample.1);
+            bag.2 = cmp::max(bag.2, sample.2);
+        }
+        bag
     }
 }
 
@@ -100,9 +111,19 @@ fn calc02a(lines: Vec<String>) -> i32 {
     let bag = Bag(12, 13, 14);
     let mut tot = 0;
     for game in read_games(lines) {
-        if bag.is_possible(&game) {
+        if game.is_possible(&bag) {
             tot += game.id;
         }
+    }
+    tot
+}
+
+fn calc02b(lines: Vec<String>) -> i32 {
+    let mut tot = 0;
+    for game in read_games(lines) {
+        let bag = game.min_bag();
+        let power = bag.0 * bag.1 * bag.2;
+        tot += power;
     }
     tot
 }
