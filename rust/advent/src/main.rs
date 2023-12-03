@@ -9,27 +9,36 @@ fn main() {
     let id = args.remove(1);
     let id = id.as_str();
     let result = match id {
-        "01a" => calc01a(),
-        "01b" => calc01b(),
+        "01a" => calc01a(read_lines()),
+        "01b" => calc01b(read_lines()),
         _ => panic!("Unknown ID {}", id),
     };
     println!("{} -> {}", id, result);
 }
 
-fn calc01a() -> i32 {
-    let mut line = String::new();
+fn read_lines() -> Vec<String> {
     let stdin = io::stdin();
-    let mut tot = 0;
+    let mut lines = Vec::new();
     loop {
-        line.clear();
-        match stdin.read_line(&mut line) {
-            Ok(siz) => match siz {
-                0 => break,
-                _ => {},
-            },
-            Err(error) => { println!("{}", error); break },
-        };
-        let line = line.trim();
+       let mut line = String::new();
+       match stdin.read_line(&mut line) {
+           Ok(siz) => match siz {
+               0 => break,
+               _ => {},
+           },
+           Err(error) => {
+               println!("{}", error);
+               break;
+           },
+       }
+       lines.push(String::from(line.trim()));
+    }
+    lines
+}
+
+fn calc01a(lines: Vec<String>) -> i32 {
+    let mut tot = 0;
+    for line in lines {
         let mut d1 = 0;
         let mut d2 = 0;
         for c in line.as_bytes() {
@@ -47,19 +56,9 @@ fn calc01a() -> i32 {
     tot
 }
 
-fn calc01b() -> i32 {
-    let mut line = String::new();
-    let stdin = io::stdin();
+fn calc01b(lines: Vec<String>) -> i32 {
     let mut tot = 0;
-    loop {
-        line.clear();
-        match stdin.read_line(&mut line) {
-            Ok(siz) => match siz {
-                0 => break,
-                _ => {},
-            },
-            Err(error) => { println!("{}", error); break },
-        };
+    for line in lines {
         let line = line.trim()
                        .replace("one", "one1one")
                        .replace("two", "two2two")
