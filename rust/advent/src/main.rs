@@ -4,6 +4,7 @@ use std::cmp;
 use regex::Regex;
 
 mod day03;
+mod day04;
 
 fn main() {
     let mut args: Vec<String> = env::args().collect();
@@ -19,6 +20,7 @@ fn main() {
         "02b" => calc02b(read_lines()),
         "03a" => day03::calc03a(read_lines()),
         "03b" => day03::calc03b(read_lines()),
+        "04a" => day04::calc04a(read_lines()),
         _ => panic!("Unknown ID {}", id),
     };
     println!("{} -> {}", id, result);
