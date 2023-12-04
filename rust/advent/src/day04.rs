@@ -40,11 +40,11 @@ fn parse_numbers(text: &str) -> Vec<i32> {
     nums
 }
 
-fn count_cards(cards: &Vec<Card>, ic: usize) -> i32 {
+fn count_cards(cards: &Vec<Card>, copies: &Vec<i32>, ic: usize) -> i32 {
     let mut c = 1;
     let wc = cards[ic].win_count() as usize;
     for j in 0..wc {
-        c += count_cards(cards, ic+j+1)
+        c += copies[ic+j+1];
     }
     c
 }
@@ -66,9 +66,14 @@ pub fn calc04b(lines: Vec<String>) -> i32 {
     for line in lines {
         cards.push(Card::from_line(line));
     }
+    let nc = cards.len();
+    let mut copies: Vec<i32> = Vec::new();
+    copies.resize(nc, 0);
     let mut count = 0;
-    for i in 0..cards.len() {
-        count += count_cards(&cards, i);
+    for i in (0..cards.len()).rev() {
+        let ncop = count_cards(&cards, &copies, i);
+        count += ncop;
+        copies[i] = ncop;
     }
     count
 }
