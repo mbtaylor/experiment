@@ -21,6 +21,7 @@ fn main() {
         "03a" => day03::calc03a(read_lines()),
         "03b" => day03::calc03b(read_lines()),
         "04a" => day04::calc04a(read_lines()),
+        "04b" => day04::calc04b(read_lines()),
         _ => panic!("Unknown ID {}", id),
     };
     println!("{} -> {}", id, result);

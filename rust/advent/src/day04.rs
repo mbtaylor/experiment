@@ -40,6 +40,15 @@ fn parse_numbers(text: &str) -> Vec<i32> {
     nums
 }
 
+fn count_cards(cards: &Vec<Card>, ic: usize) -> i32 {
+    let mut c = 1;
+    let wc = cards[ic].win_count() as usize;
+    for j in 0..wc {
+        c += count_cards(cards, ic+j+1)
+    }
+    c
+}
+
 pub fn calc04a(lines: Vec<String>) -> i32 {
     let mut score = 0;
     for line in lines {
@@ -50,4 +59,16 @@ pub fn calc04a(lines: Vec<String>) -> i32 {
         }
     }
     score
+}
+
+pub fn calc04b(lines: Vec<String>) -> i32 {
+    let mut cards: Vec<Card> = Vec::new();
+    for line in lines {
+        cards.push(Card::from_line(line));
+    }
+    let mut count = 0;
+    for i in 0..cards.len() {
+        count += count_cards(&cards, i);
+    }
+    count
 }
