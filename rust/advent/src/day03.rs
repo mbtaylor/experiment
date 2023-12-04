@@ -1,7 +1,17 @@
+use std::collections::HashSet;
+
 struct Grid {
     xdim: i32,
     ydim: i32,
     lines: Vec<String>,
+}
+
+#[derive(PartialEq, Eq, Hash)]
+#[derive(Debug)]
+struct Part {
+    value: i32,
+    ix: i32,
+    iy: i32,
 }
 
 impl Grid {
@@ -23,6 +33,34 @@ impl Grid {
             }
         }
         false
+    }
+    fn get_part(&self, ix: i32, iy: i32) -> Option<Part> {
+        match digit(self.at(ix, iy)) {
+            None => None,
+            Some(_) => {
+                let mut x = ix.clone();
+                let x_min = loop {
+                    match digit(self.at(x-1, iy)) {
+                        None => break x,
+                        Some(_) => x -= 1,
+                    }
+                };
+                let mut x = ix.clone();
+                let x_max = loop {
+                    match digit(self.at(x+1, iy)) {
+                        None => break x,
+                        Some(_) => x +=1,
+                    }
+                };
+                let value: i32 =
+                    self.lines[iy as usize]
+                              [(x_min as usize)..((x_max+1) as usize)]
+                        .parse()
+                        .expect("Bad num");
+                let part = Part{value: value, ix: x_min, iy: iy};
+                Some(part)
+            },
+        }
     }
     fn from_lines(lines: Vec<String>) -> Grid {
         let xdim = lines[0].len() as i32;
@@ -70,6 +108,36 @@ pub fn calc03a(lines: Vec<String>) -> i32 {
                     }
                     digs.clear();
                     has_sym = false;
+                }
+            }
+        }
+    }
+    tot
+}
+
+pub fn calc03b(lines: Vec<String>) -> i32 {
+    let grid = Grid::from_lines(lines);
+    let mut tot = 0;
+    for iy in -1..grid.ydim+1 {
+        for ix in -1..grid.xdim+1 {
+            if grid.at(ix, iy) == &b'*' {
+                let mut parts: HashSet<Part> = HashSet::new();
+                for jx in ix-1..ix+2 {
+                    for jy in iy-1..iy+2 {
+                        match grid.get_part(jx, jy) {
+                            Some(part) => {
+                                parts.insert(part)
+                            },
+                            None => false,
+                        };
+                    }
+                }
+                if parts.len() == 2 {
+                    let mut pair = [0, 0];
+                    for (i, p) in parts.iter().enumerate() {
+                        pair[i] = p.value;
+                    }
+                    tot += pair[0] * pair[1];
                 }
             }
         }

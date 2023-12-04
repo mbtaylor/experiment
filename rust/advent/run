@@ -7,3 +7,4 @@ cargo run -q 01b <$datadir/advent1.txt
 cargo run -q 02a <$datadir/advent2.txt
 cargo run -q 02b <$datadir/advent2.txt
 cargo run -q 03a <$datadir/advent3.txt
+cargo run -q 03b <$datadir/advent3.txt
