@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+
 use std::io;
 use std::env;
 
@@ -5,6 +7,7 @@ mod day01;
 mod day02;
 mod day03;
 mod day04;
+mod day05;
 
 fn main() {
     let mut args: Vec<String> = env::args().collect();
@@ -14,14 +17,15 @@ fn main() {
     let id = args.remove(1);
     let id = id.as_str();
     let result = match id {
-        "01a" => day01::calc01a(read_lines()),
-        "01b" => day01::calc01b(read_lines()),
-        "02a" => day02::calc02a(read_lines()),
-        "02b" => day02::calc02b(read_lines()),
-        "03a" => day03::calc03a(read_lines()),
-        "03b" => day03::calc03b(read_lines()),
-        "04a" => day04::calc04a(read_lines()),
-        "04b" => day04::calc04b(read_lines()),
+        "01a" => day01::calc01a(read_lines()) as i64,
+        "01b" => day01::calc01b(read_lines()) as i64,
+        "02a" => day02::calc02a(read_lines()) as i64,
+        "02b" => day02::calc02b(read_lines()) as i64,
+        "03a" => day03::calc03a(read_lines()) as i64,
+        "03b" => day03::calc03b(read_lines()) as i64,
+        "04a" => day04::calc04a(read_lines()) as i64,
+        "04b" => day04::calc04b(read_lines()) as i64,
+        "05a" => day05::calc05a(read_lines()),
         _ => panic!("Unknown ID {}", id),
     };
     println!("{} -> {}", id, result);

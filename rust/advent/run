@@ -10,3 +10,4 @@ cargo run -q 03a <$datadir/advent3.txt
 cargo run -q 03b <$datadir/advent3.txt
 cargo run -q 04a <$datadir/advent4.txt
 cargo run -q 04b <$datadir/advent4.txt
+cargo run -q 05a <$datadir/advent5.txt
