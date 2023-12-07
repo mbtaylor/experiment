@@ -2,15 +2,15 @@
 
 datadir=../../data
 
-cargo run -q 01a <$datadir/advent1.txt
-cargo run -q 01b <$datadir/advent1.txt
-cargo run -q 02a <$datadir/advent2.txt
-cargo run -q 02b <$datadir/advent2.txt
-cargo run -q 03a <$datadir/advent3.txt
-cargo run -q 03b <$datadir/advent3.txt
-cargo run -q 04a <$datadir/advent4.txt
-cargo run -q 04b <$datadir/advent4.txt
-cargo run -q 05a <$datadir/advent5.txt
-cargo run -q 05b <$datadir/advent5.txt
-cargo run -q 06a <$datadir/advent6.txt
-cargo run -q 06b <$datadir/advent6.txt
+cargo run -q 01a <$datadir/advent01.txt
+cargo run -q 01b <$datadir/advent01.txt
+cargo run -q 02a <$datadir/advent02.txt
+cargo run -q 02b <$datadir/advent02.txt
+cargo run -q 03a <$datadir/advent03.txt
+cargo run -q 03b <$datadir/advent03.txt
+cargo run -q 04a <$datadir/advent04.txt
+cargo run -q 04b <$datadir/advent04.txt
+cargo run -q 05a <$datadir/advent05.txt
+cargo run -q 05b <$datadir/advent05.txt
+cargo run -q 06a <$datadir/advent06.txt
+cargo run -q 06b <$datadir/advent06.txt

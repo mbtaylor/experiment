@@ -5,8 +5,8 @@ JARFILE = advent.jar
 ADVENT = java -jar advent.jar
 
 run: $(JARFILE)
-	$(ADVENT) 01a ../data/advent1.txt
-	$(ADVENT) 01b ../data/advent1.txt
+	$(ADVENT) 01a ../data/advent01.txt
+	$(ADVENT) 01b ../data/advent01.txt
 
 build: $(JARFILE)
 
