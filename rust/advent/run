@@ -15,3 +15,4 @@ cargo run -q 05b <$datadir/advent05.txt
 cargo run -q 06a <$datadir/advent06.txt
 cargo run -q 06b <$datadir/advent06.txt
 cargo run -q 07a <$datadir/advent07.txt
+cargo run -q 07b <$datadir/advent07.txt
