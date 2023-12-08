@@ -59,7 +59,7 @@ public class Advent08 {
                 }
             }
         }
-        // The answer is 14_265_111_103_729
+        // The answer is 14_265_111_103_729.  It took 18 minutes.
     }
 
     Offset getNextZ( String loc, int ipos ) {
