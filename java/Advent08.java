@@ -35,7 +35,6 @@ public class Advent08 {
         String[] starts = Arrays.stream( locs )
                                 .filter( l -> l.endsWith( "A" ) )
                                 .toArray( n -> new String[ n ] );
-        System.out.println( Arrays.toString( starts ) );
 
         int nstart = starts.length;
         Offset[] offs = new Offset[ nstart ];
@@ -55,16 +54,12 @@ public class Advent08 {
                     highs[ is ] += offs[ is ].nstep_;
                 }
                 int ndistinct = (int) Arrays.stream(highs).distinct().count();
-                if ( ndistinct <= 2 ) {
-                    System.out.println( ndistinct + " "
-                                      + Arrays.toString(highs) );
-                }
                 if ( ndistinct == 1 ) {
                     return highs[0];
                 }
             }
         }
-  // tried up to 1e13
+        // The answer is 14_265_111_103_729
     }
 
     Offset getNextZ( String loc, int ipos ) {
