@@ -42,8 +42,9 @@ impl Display for Pair {
 fn read_chart(lines: Vec<String>) -> Chart {
     let dirs = String::from(&lines[0]);
     let mut map: HashMap<Loc,Pair> = HashMap::new();
-    let node_re = Regex::new("([A-Z]{3}) = [(]([A-Z]{3}), ([A-Z]{3})[)]")
-                 .unwrap();
+    let node_re =
+        Regex::new("([A-Z1-9]{3}) = [(]([A-Z1-9]{3}), ([A-Z1-9]{3})[)]")
+       .unwrap();
     for line in lines.iter().skip(2) {
         match node_re.captures(&line[..]) {
             Some(caps) => {
@@ -72,6 +73,34 @@ pub fn calc08a(lines: Vec<String>) -> i64 {
         };
         if loc == &end {
             return (i + 1) as i64;
+        }
+    }
+    panic!()
+}
+
+pub fn calc08b(lines: Vec<String>) -> i64 {
+    let chart = read_chart(lines);
+    let mut locs: Vec<&Loc> =
+        chart.map.keys().filter(|k| k.0[2] == b'A').collect();
+    for (i, c_dir) in chart.dirs.chars().cycle().enumerate() {
+        let mut all_z = true;
+        let mut locs1: Vec<&Loc> = Vec::with_capacity(locs.len());
+        for loc in &locs {
+            let pair = &chart.map.get(loc).unwrap();
+            let loc1 = match c_dir {
+                'L' => &pair.0,
+                'R' => &pair.1,
+                _ => panic!(),
+            };
+            locs1.push(loc1);
+            all_z = all_z && loc1.0[2] == b'Z';
+        }
+        if all_z {
+            return (i + 1) as i64;
+        }
+        locs.clear();
+        for loc1 in locs1 {
+            locs.push(loc1);
         }
     }
     panic!()
