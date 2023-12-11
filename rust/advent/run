@@ -17,4 +17,6 @@ cargo run -q 06b <$datadir/advent06.txt
 cargo run -q 07a <$datadir/advent07.txt
 cargo run -q 07b <$datadir/advent07.txt
 cargo run -q 08a <$datadir/advent08.txt
-cargo run -q 08b <$datadir/advent08.txt
+# too slow
+# cargo run -q 08b <$datadir/advent08.txt
+cargo run -q 09a <$datadir/advent09.txt
