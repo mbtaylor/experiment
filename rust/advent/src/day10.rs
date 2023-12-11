@@ -83,23 +83,26 @@ impl Map {
         }
         exits
     }
+    fn tunnel(&self) -> Vec<Pos> {
+        let mut tunnel: Vec<Pos> = Vec::new();
+        let start = self.find_start();
+        let mut p0 = start;
+        let mut p1 = self.exits(&p0)[0];
+        tunnel.push(p0);
+        loop {
+            tunnel.push(p1);
+            let ends = self.ends(&p1).unwrap();
+            (p0, p1) = (p1, if ends[0] == p0 { ends[1] } else { ends[0] });
+            if p1 == start {
+                return tunnel;
+            }
+        }
+    }
 }
-
 
 pub fn calc10a(lines: Vec<String>) -> i64 {
     let map = Map::from(lines);
-
-    let mut tunnel: Vec<Pos> = Vec::new();
-    let start = map.find_start();
-    let mut p0 = start;
-    let mut p1 = map.exits(&p0)[0];
-    tunnel.push(p0);
-    loop {
-        tunnel.push(p1);
-        let ends = map.ends(&p1).unwrap();
-        (p0, p1) = (p1, if ends[0] == p0 { ends[1] } else { ends[0] });
-        if p1 == start { break; };
-    }
+    let tunnel = &map.tunnel();
     let siz = tunnel.len();
     (siz / 2) as i64
 }
