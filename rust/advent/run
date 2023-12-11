@@ -20,3 +20,4 @@ cargo run -q 08a <$datadir/advent08.txt
 # too slow
 # cargo run -q 08b <$datadir/advent08.txt
 cargo run -q 09a <$datadir/advent09.txt
+cargo run -q 09b <$datadir/advent09.txt

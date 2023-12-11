@@ -41,3 +41,20 @@ pub fn calc09a(lines: Vec<String>) -> i64 {
     }
     tot
 }
+
+pub fn calc09b(lines: Vec<String>) -> i64 {
+    let mut tot = 0;
+    for line in lines {
+        let ys: Vec<i64> =
+            line.split_whitespace().map(|x| x.parse().unwrap()).collect();
+        let n = ys.len();
+        let mut xs: Vec<i64> = Vec::with_capacity(n);
+        for i in 0..n {
+            xs.push(i as i64);
+        }
+        let lag = Lagrange::from(xs, ys);
+        let next = lag.calc(-1);
+        tot += next;
+    }
+    tot
+}
