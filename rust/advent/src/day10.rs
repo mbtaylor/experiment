@@ -122,12 +122,12 @@ pub fn calc10b(lines: Vec<String>) -> i64 {
             if tunnel_contains(tunnel, &pos) {
                 let add_cross = match map.read(&pos).unwrap() {
                     b'|' => 1,
-                    b'L' => 1,
+                    b'L' => 0,
                     b'F' => 1,
-                    b'J' => -1,
-                    b'7' => -1,
+                    b'J' => 0,
+                    b'7' => 1,
                     b'-' => 0,
-                    b'S' => 1,  // cheat
+                    b'S' => 0,  // cheat
                     b'.' => 0,
                     _ => 0,
                 };
@@ -135,7 +135,6 @@ pub fn calc10b(lines: Vec<String>) -> i64 {
             }
             else {
                 if ncross % 2 == 1 {
-  println!("   {}   {:?}", ncross, pos);
                     nin += 1;
                 }
             }
