@@ -100,9 +100,46 @@ impl Map {
     }
 }
 
+fn tunnel_contains(tunnel: &Vec<Pos>, pos: &Pos) -> bool {
+    tunnel.iter().any(|x| x == pos)
+}
+
 pub fn calc10a(lines: Vec<String>) -> i64 {
     let map = Map::from(lines);
     let tunnel = &map.tunnel();
     let siz = tunnel.len();
     (siz / 2) as i64
+}
+
+pub fn calc10b(lines: Vec<String>) -> i64 {
+    let map = Map::from(lines);
+    let tunnel = &map.tunnel();
+    let mut nin = 0;
+    for iy in 0..map.ny {
+        let mut ncross: i32 = 0;
+        for ix in 0..map.nx {
+            let pos = Pos{x: ix as i32, y: iy as i32};
+            if tunnel_contains(tunnel, &pos) {
+                let add_cross = match map.read(&pos).unwrap() {
+                    b'|' => 1,
+                    b'L' => 1,
+                    b'F' => 1,
+                    b'J' => -1,
+                    b'7' => -1,
+                    b'-' => 0,
+                    b'S' => 1,  // cheat
+                    b'.' => 0,
+                    _ => 0,
+                };
+                ncross += add_cross;
+            }
+            else {
+                if ncross % 2 == 1 {
+  println!("   {}   {:?}", ncross, pos);
+                    nin += 1;
+                }
+            }
+        }
+    }
+    nin
 }
