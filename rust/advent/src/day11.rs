@@ -13,7 +13,7 @@ struct Map {
 }
 
 impl Map {
-    fn from(lines: Vec<String>) -> Map {
+    fn from(lines: Vec<String>, expansion: usize) -> Map {
         let mut gals: Vec<Pos> = Vec::new();
         for (iy, line) in lines.iter().enumerate() {
             for (ix, c) in line.as_bytes().iter().enumerate() {
@@ -35,10 +35,10 @@ impl Map {
             row_counts[gal.y] += 1;
         }
         let col_metrics = col_counts.iter()
-                         .map(|c| if c == &0 {2} else {1})
+                         .map(|c| if c == &0 {expansion} else {1})
                          .collect();
         let row_metrics = row_counts.iter()
-                         .map(|c| if c == &0 {2} else {1})
+                         .map(|c| if c == &0 {expansion} else {1})
                          .collect();
         Map{gals, col_metrics, row_metrics}
     }
@@ -57,7 +57,18 @@ impl Map {
 }
 
 pub fn calc11a(lines: Vec<String>) -> i64 {
-    let map = Map::from(lines);
+    let map = Map::from(lines, 2);
+    let mut tot = 0;
+    for (i1, g1) in map.gals.iter().enumerate() {
+        for (i2, g2) in map.gals.iter().take(i1).enumerate() {
+            tot += map.dist(g1, g2);
+        }
+    }
+    tot
+}
+
+pub fn calc11b(lines: Vec<String>) -> i64 {
+    let map = Map::from(lines, 1000000);
     let mut tot = 0;
     for (i1, g1) in map.gals.iter().enumerate() {
         for (i2, g2) in map.gals.iter().take(i1).enumerate() {
