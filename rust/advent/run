@@ -22,3 +22,5 @@ cargo run -q 08a <$datadir/advent08.txt
 cargo run -q 09a <$datadir/advent09.txt
 cargo run -q 09b <$datadir/advent09.txt
 cargo run -q 10a <$datadir/advent10.txt
+cargo run -q 10b <$datadir/advent10.txt
+cargo run -q 11a <$datadir/advent11.txt
