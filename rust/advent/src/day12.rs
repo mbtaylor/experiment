@@ -86,3 +86,33 @@ pub fn calc12a(lines: Vec<String>) -> i64 {
     }
     tot
 }
+
+pub fn calc12b(lines: Vec<String>) -> i64 {
+    let nfold = 5;
+    let mut tot = 0;
+    for (i, line) in lines.iter().enumerate() {
+        let mut split = line.split_whitespace();
+        let map = split.next().unwrap();
+        let counts: Vec<usize> =
+            split.next().unwrap()
+           .split(',').map(|x| x.parse().unwrap()).collect();
+        let mut map_fold: String = String::new();
+        let mut counts_fold: Vec<usize> = Vec::new();
+        for i in 0..nfold {
+            if i > 0 {
+                map_fold.push('?');
+            }
+            map_fold.push_str(&map);
+            for c in &counts {
+                counts_fold.push(*c);
+            }
+        }
+        let nmatch = Calculator{txt: String::from(map_fold),
+                                counts: counts_fold.clone()}
+                    .count_possible_matches();
+        println!("{}: {}", i, nmatch);
+        tot += nmatch;
+    }
+    tot
+}
+
