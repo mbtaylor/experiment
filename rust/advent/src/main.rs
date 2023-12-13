@@ -15,6 +15,7 @@ mod day09;
 mod day10;
 mod day11;
 mod day12;
+mod day13;
 
 fn main() {
     let mut args: Vec<String> = env::args().collect();
@@ -48,6 +49,7 @@ fn main() {
         "11b" => day11::calc11b(read_lines()),
         "12a" => day12::calc12a(read_lines()),
         "12b" => day12::calc12b(read_lines()),
+        "13a" => day13::calc13a(read_lines()),
         _ => panic!("Unknown ID {}", id),
     };
     println!("{} -> {}", id, result);
