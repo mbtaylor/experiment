@@ -1,12 +1,10 @@
 use std::collections::HashSet;
-use std::collections::hash_map::DefaultHasher;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result;
 use std::hash::Hash;
-use std::hash::Hasher;
 
-#[derive(PartialEq,Clone,Hash)]
+#[derive(PartialEq,Eq,Clone,Hash)]
 struct Dish {
     rows: Vec<Vec<u8>>,
     xdim: usize,
@@ -47,11 +45,6 @@ impl Dish {
         }
         score
     }
-    fn checksum(&self) -> u64 {
-        let mut hasher = DefaultHasher::new();
-        self.hash(&mut hasher);
-        hasher.finish()
-    }
     fn tilt(&mut self, dir: Direction) {
         match dir {
             Direction::N => {
@@ -90,7 +83,7 @@ impl Dish {
                                 }
                             },
                             b'#' => {
-                                if iy > 1 {
+                                if iy > 0 {
                                     iy1 = iy - 1;
                                 }
                             },
@@ -135,7 +128,7 @@ impl Dish {
                                 }
                             },
                             b'#' => {
-                                if ix > 1 {
+                                if ix > 0 {
                                     ix1 = ix - 1;
                                 }
                             },
@@ -189,16 +182,16 @@ pub fn calc14a(lines: Vec<String>) -> i64 {
 pub fn calc14b(lines: Vec<String>) -> i64 {
     let mut dish = Dish::from(lines);
     let mut j = 0;
-    for i in 0..1000 {
+    for i in 0..100 {
         dish.spin_cycle();
         j += 1;
     }
     let j0 = j;
     let mut set = HashSet::new();
-    for i in 0..1000 {
+    for i in 0..100 {
         dish.spin_cycle();
         j += 1;
-        set.insert(dish.checksum());
+        set.insert(dish.clone());
     }
     let period = set.len();
     let ncycle: i64 = 1_000_000_000 - j;
@@ -209,6 +202,5 @@ pub fn calc14b(lines: Vec<String>) -> i64 {
         dish.spin_cycle();
         j += 1;
     }
-    println!("{} -> {:?}    {}", scores.len(), scores, iscore);
     scores[iscore]
 }

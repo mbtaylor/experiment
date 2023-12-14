@@ -29,3 +29,4 @@ echo "12b fail"
 cargo run -q 13a <$datadir/advent13.txt
 cargo run -q 13b <$datadir/advent13.txt
 cargo run -q 14a <$datadir/advent14.txt
+cargo run -q 14b <$datadir/advent14.txt
