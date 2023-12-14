@@ -1,4 +1,5 @@
 
+#[derive(PartialEq)]
 struct SpringState {
     txt: String,
     counts: Vec<usize>,
@@ -29,6 +30,69 @@ impl SpringState {
                     0
                 }
             },
+        }
+    }
+    fn simplify(&self) -> SpringState {
+        let mut txt = self.txt.clone();
+        let mut counts = self.counts.clone();
+        while txt.as_bytes()[0] != b'?' {
+            if txt.as_bytes()[0] == b'#' && counts.len() > 0 {
+                txt.remove(0);
+                counts[0] -= 1;
+                if counts[0] == 0 {
+                    counts.remove(0);
+                }
+            }
+            else if txt.as_bytes()[0] == b'.' {
+                txt.remove(0);
+            }
+        }
+        SpringState{txt, counts}
+    }
+
+    fn count_possible_matches_b(&mut self) -> i64 {
+        if !self.can_match() {
+            return 0
+        }
+        match self.txt.find('?') {
+            None => 1,
+            Some(iq) => {
+                let mut state = self.simplify();
+                if state.counts.len() == 0 {
+                    return 0;
+                }
+                if &state == self {
+                    assert!(state.txt.as_bytes()[0] == b'?');
+                    let mut ic = 0;
+                    state.txt.replace_range(0..1, ".");
+                    ic += state.count_possible_matches_b();
+                    state.txt.replace_range(0..1, "#");
+                    ic += state.count_possible_matches_b();
+                    return ic;
+                }
+                let nq = state.txt.bytes().take_while(|c| c == &b'?').count();
+                let mut ic = 0;
+                let c0 = state.counts[0];
+                let nfill = if nq > state.counts[0] { nq - state.counts[0] }
+                                               else { nq };
+                for i in 0..nfill {
+                    let mut rep = String::with_capacity(c0);
+                    for j in 0..c0 {
+                        if j < i {
+                            rep.push('.');
+                        }
+                        else if j >= i && j < i + nq {
+                            rep.push('#');
+                        }
+                        else {
+                            rep.push('?');
+                        }
+                    }
+                    state.txt.replace_range(i..i+c0, &rep[..]);
+                    ic += state.count_possible_matches_b();
+                }
+                ic
+            }
         }
     }
 
@@ -109,7 +173,7 @@ pub fn calc12b(lines: Vec<String>) -> i64 {
         }
         let nmatch = SpringState{txt: String::from(map_fold),
                                  counts: counts_fold.clone()}
-                    .count_possible_matches();
+                    .count_possible_matches_b();
         println!("{}: {}", i, nmatch);
         tot += nmatch;
     }
