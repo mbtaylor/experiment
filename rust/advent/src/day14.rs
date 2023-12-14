@@ -201,13 +201,13 @@ pub fn calc14b(lines: Vec<String>) -> i64 {
         set.insert(dish.checksum());
     }
     let period = set.len();
-    let ncycle: i64 = 1_000_000_000 - j - 1;
+    let ncycle: i64 = 1_000_000_000 - j;
     let iscore = ( ncycle % period as i64 ) as usize;
     let mut scores = Vec::new();
     for i in 0..period {
+        scores.push(dish.score_north());
         dish.spin_cycle();
         j += 1;
-        scores.push(dish.score_north());
     }
     println!("{} -> {:?}    {}", scores.len(), scores, iscore);
     scores[iscore]
