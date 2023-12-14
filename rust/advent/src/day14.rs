@@ -1,8 +1,16 @@
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt::Result;
 
+#[derive(PartialEq,Clone,Hash)]
 struct Dish {
     rows: Vec<Vec<u8>>,
     xdim: usize,
     ydim: usize,
+}
+
+enum Direction {
+    N, W, S, E,
 }
 
 impl Dish {
@@ -18,6 +26,121 @@ impl Dish {
     }
     fn get(&self, ix: usize, iy: usize) -> u8 {
         self.rows[iy][ix]
+    }
+    fn set(&mut self, ix: usize, iy: usize, byte: u8) {
+        let row = &mut self.rows[iy];
+        row[ix] = byte;
+    }
+    fn score_north(&self) -> i64 {
+        let mut score = 0;
+        for iy in 0..self.ydim {
+            let w = self.ydim - iy;
+            for ix in 0..self.xdim {
+                if self.get(ix, iy) == b'O' {
+                    score += w as i64;
+                }
+            }
+        }
+        score
+    }
+    fn tilt(&mut self, dir: Direction) {
+        match dir {
+            Direction::N => {
+                for ix in 0..self.xdim {
+                    let mut iy1 = 0;
+                    for iy in 0..self.ydim {
+                        match self.get(ix, iy) {
+                            b'O' => {
+                                if iy > iy1 {
+                                    self.set(ix, iy, b'.');
+                                    self.set(ix, iy1, b'O');
+                                }
+                                iy1 += 1;
+                            },
+                            b'#' => {
+                                iy1 = iy + 1;
+                            },
+                            _ => {},
+                        }
+                    }
+                }
+            },
+            Direction::S => {
+                for ix in 0..self.xdim {
+                    let mut iy1 = self.ydim - 1;
+                    for jy in 0..self.ydim {
+                        let iy = self.ydim - 1 - jy;
+                        match self.get(ix, iy) {
+                            b'O' => {
+                                if iy < iy1 {
+                                    self.set(ix, iy, b'.');
+                                    self.set(ix, iy1, b'O');
+                                }
+                                iy1 -= 1;
+                            },
+                            b'#' => {
+                                if iy > 1 {
+                                    iy1 = iy - 1;
+                                }
+                            },
+                            _ => {},
+                        }
+                    }
+                }
+            },
+            Direction::W => {
+                for iy in 0..self.ydim {
+                    let mut ix1 = 0;
+                    for ix in 0..self.xdim {
+                        match self.get(ix, iy) {
+                            b'O' => {
+                                if ix > ix1 {
+                                    self.set(ix, iy, b'.');
+                                    self.set(ix1, iy, b'O');
+                                }
+                                ix1 += 1;
+                            },
+                            b'#' => {
+                                ix1 = ix + 1;
+                            },
+                            _ => {},
+                        }
+                    }
+                }
+            },
+            Direction::E => {
+                for iy in 0..self.ydim {
+                    let mut ix1 = self.xdim - 1;
+                    for jx in 0..self.xdim {
+                        let ix = self.xdim - 1 - jx;
+                        match self.get(ix, iy) {
+                            b'O' => {
+                                if ix < ix1 {
+                                    self.set(ix, iy, b'.');
+                                    self.set(ix1, iy, b'O');
+                                }
+                                ix1 -= 1;
+                            },
+                            b'#' => {
+                                if ix > 1 {
+                                    ix1 = ix - 1;
+                                }
+                            },
+                            _ => {},
+                        }
+                    }
+                }
+            },
+        }
+    }
+}
+
+impl Display for Dish {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        for row in &self.rows {
+            _ = writeln!(f, "{}", String::from_utf8(row.to_vec()).unwrap());
+        }
+        Ok(())
     }
 }
 
@@ -42,4 +165,21 @@ pub fn calc14a(lines: Vec<String>) -> i64 {
         }
     }
     tot
+}
+
+pub fn calc14b(lines: Vec<String>) -> i64 {
+    let mut dish = Dish::from(lines);
+    for i in 0..1000000000 {
+        println!("{}", i);
+        let dish1 = dish.clone();
+        dish.tilt(Direction::N);
+        dish.tilt(Direction::W);
+        dish.tilt(Direction::S);
+        dish.tilt(Direction::E);
+        if dish1 == dish {
+            break;
+        }
+    }
+    println!("{}", dish);
+    dish.score_north()
 }
