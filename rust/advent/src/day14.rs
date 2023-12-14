@@ -1,6 +1,10 @@
+use std::collections::HashSet;
+use std::collections::hash_map::DefaultHasher;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result;
+use std::hash::Hash;
+use std::hash::Hasher;
 
 #[derive(PartialEq,Clone,Hash)]
 struct Dish {
@@ -43,6 +47,11 @@ impl Dish {
         }
         score
     }
+    fn checksum(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
+    }
     fn tilt(&mut self, dir: Direction) {
         match dir {
             Direction::N => {
@@ -76,7 +85,9 @@ impl Dish {
                                     self.set(ix, iy, b'.');
                                     self.set(ix, iy1, b'O');
                                 }
-                                iy1 -= 1;
+                                if iy1 > 0 {
+                                    iy1 -= 1;
+                                }
                             },
                             b'#' => {
                                 if iy > 1 {
@@ -119,7 +130,9 @@ impl Dish {
                                     self.set(ix, iy, b'.');
                                     self.set(ix1, iy, b'O');
                                 }
-                                ix1 -= 1;
+                                if ix1 > 0 {
+                                    ix1 -= 1;
+                                }
                             },
                             b'#' => {
                                 if ix > 1 {
@@ -132,6 +145,12 @@ impl Dish {
                 }
             },
         }
+    }
+    fn spin_cycle(&mut self) {
+        self.tilt(Direction::N);
+        self.tilt(Direction::W);
+        self.tilt(Direction::S);
+        self.tilt(Direction::E);
     }
 }
 
@@ -169,17 +188,27 @@ pub fn calc14a(lines: Vec<String>) -> i64 {
 
 pub fn calc14b(lines: Vec<String>) -> i64 {
     let mut dish = Dish::from(lines);
-    for i in 0..1000000000 {
-        println!("{}", i);
-        let dish1 = dish.clone();
-        dish.tilt(Direction::N);
-        dish.tilt(Direction::W);
-        dish.tilt(Direction::S);
-        dish.tilt(Direction::E);
-        if dish1 == dish {
-            break;
-        }
+    let mut j = 0;
+    for i in 0..1000 {
+        dish.spin_cycle();
+        j += 1;
     }
-    println!("{}", dish);
-    dish.score_north()
+    let j0 = j;
+    let mut set = HashSet::new();
+    for i in 0..1000 {
+        dish.spin_cycle();
+        j += 1;
+        set.insert(dish.checksum());
+    }
+    let period = set.len();
+    let ncycle: i64 = 1_000_000_000 - j - 1;
+    let iscore = ( ncycle % period as i64 ) as usize;
+    let mut scores = Vec::new();
+    for i in 0..period {
+        dish.spin_cycle();
+        j += 1;
+        scores.push(dish.score_north());
+    }
+    println!("{} -> {:?}    {}", scores.len(), scores, iscore);
+    scores[iscore]
 }
