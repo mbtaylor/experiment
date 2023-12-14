@@ -1,14 +1,14 @@
 
-struct Calculator {
+struct SpringState {
     txt: String,
     counts: Vec<usize>,
 }
 
-impl Calculator {
+impl SpringState {
     fn count_possible_matches(&mut self) -> i64 {
         match self.txt.find('?') {
             None => {
-                if can_match(&self.txt[..], &self.counts[..]) {
+                if self.can_match() {
                     1
                 }
                 else {
@@ -16,7 +16,7 @@ impl Calculator {
                 }
             },
             Some(iq) => {
-                if can_match(&self.txt[..], &self.counts[..]) {
+                if self.can_match() {
                     let mut c1 = 0;
                     self.txt.replace_range(iq..iq+1, ".");
                     c1 += self.count_possible_matches();
@@ -31,44 +31,44 @@ impl Calculator {
             },
         }
     }
-}
 
-fn can_match(txt: &str, counts: &[usize]) -> bool {
-    let ngrp = counts.len();
-    let mut igrp = 0;
-    let mut hash_count = 0;
-    for c in txt.as_bytes() {
-        match c {
-            b'#' => {
-                hash_count += 1;
-                if igrp >= counts.len() {
-                    return false;
-                }
-            },
-            b'.' => {
-                if hash_count > 0 {
-                    if hash_count != counts[igrp] {
+    fn can_match(&self) -> bool {
+        let ngrp = self.counts.len();
+        let mut igrp = 0;
+        let mut hash_count = 0;
+        for c in self.txt.as_bytes() {
+            match c {
+                b'#' => {
+                    hash_count += 1;
+                    if igrp >= self.counts.len() {
                         return false;
                     }
-                    hash_count = 0;
-                    igrp += 1;
-                }
-            },
-            b'?' => {
-                return true;
-            },
-            _ => {
-                panic!();
-            },
+                },
+                b'.' => {
+                    if hash_count > 0 {
+                        if hash_count != self.counts[igrp] {
+                            return false;
+                        }
+                        hash_count = 0;
+                        igrp += 1;
+                    }
+                },
+                b'?' => {
+                    return true;
+                },
+                _ => {
+                    panic!();
+                },
+            }
         }
-    }
-    if hash_count > 0 {
-        if hash_count != counts[igrp] {
-            return false;
+        if hash_count > 0 {
+            if hash_count != self.counts[igrp] {
+                return false;
+            }
+            igrp += 1;
         }
-        igrp += 1;
+        igrp == ngrp
     }
-    igrp == ngrp
 }
 
 pub fn calc12a(lines: Vec<String>) -> i64 {
@@ -80,7 +80,7 @@ pub fn calc12a(lines: Vec<String>) -> i64 {
         let counts: Vec<usize> =
             split.next().unwrap()
            .split(',').map(|x| x.parse().unwrap()).collect();
-        let nmatch = Calculator{txt: String::from(map), counts: counts.clone()}
+        let nmatch = SpringState{txt: String::from(map), counts: counts.clone()}
                     .count_possible_matches();
         tot += nmatch;
     }
@@ -107,8 +107,8 @@ pub fn calc12b(lines: Vec<String>) -> i64 {
                 counts_fold.push(*c);
             }
         }
-        let nmatch = Calculator{txt: String::from(map_fold),
-                                counts: counts_fold.clone()}
+        let nmatch = SpringState{txt: String::from(map_fold),
+                                 counts: counts_fold.clone()}
                     .count_possible_matches();
         println!("{}: {}", i, nmatch);
         tot += nmatch;
