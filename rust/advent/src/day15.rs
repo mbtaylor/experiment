@@ -1,3 +1,4 @@
+use regex::Regex;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result;
@@ -9,7 +10,7 @@ struct Step {
 
 #[derive(PartialEq)]
 struct Label {
-    txt: [u8; 2],
+    txt: String,
 }
 
 struct Room {
@@ -27,7 +28,7 @@ struct Lens {
 
 impl Label {
     fn ibox(&self) -> u8 {
-        hash(&self.txt)
+        hash(&self.txt[..])
     }
 }
 
@@ -41,7 +42,7 @@ impl Room {
 
 impl Display for Label {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{}{}", self.txt[0] as char, self.txt[1] as char)
+        write!(f, "{}", self.txt)
     }
 }
 
@@ -58,19 +59,24 @@ impl Display for Step {
 impl Step {
     fn from_word(word: &str) -> Step {
         let buf = word.as_bytes();
-        let label = Label{txt: [buf[0], buf[1]]};
-        let focal = match buf[2] {
-            b'-' => None,
-            b'=' => Some(String::from_utf8_lossy(&buf[3..]).parse().unwrap()),
+        let word_re = Regex::new("([a-z]+)([=-]?)(.*)").unwrap();
+        let caps = word_re.captures(word).unwrap();
+        let label_txt = String::from(&caps[1]);
+        let symbol = &caps[2];
+        let focal_txt = &caps[3];
+        let label = Label{txt: label_txt};
+        let focal = match symbol {
+            "-" => None,
+            "=" => Some(focal_txt.parse().unwrap()),
             _ => panic!(),
         };
         Step{label, focal}
     }
 }
 
-fn hash(buf: &[u8]) -> u8 {
+fn hash(txt: &str) -> u8 {
     let mut h: i32 = 0;
-    for b in buf {
+    for b in txt.as_bytes() {
         h += *b as i32;
         h *= 17;
         h = h % 256;
@@ -82,7 +88,7 @@ pub fn calc15a(lines: Vec<String>) -> i64 {
     let mut tot = 0;
     for line in lines {
         for word in line.split(',') {
-            tot += hash(word.as_bytes()) as i64;
+            tot += hash(&word[..]) as i64;
         }
     }
     tot
