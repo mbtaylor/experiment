@@ -1,3 +1,4 @@
+use std::cmp;
 use std::collections::HashSet;
 
 struct Field {
@@ -124,7 +125,7 @@ fn prop_beam(field: &Field, seen: &mut HashSet<Beam>, beam: Beam) {
     }
 }
 
-fn count_activated(field: Field, beam0: Beam) -> i64 {
+fn count_activated(field: &Field, beam0: Beam) -> i64 {
     let mut seen_beams: HashSet<Beam> = HashSet::new();
     prop_beam(&field, &mut seen_beams, beam0);
     let mut activated: HashSet<[usize; 2]> = HashSet::new();
@@ -135,6 +136,28 @@ fn count_activated(field: Field, beam0: Beam) -> i64 {
 }
 
 pub fn calc16a(lines: Vec<String>) -> i64 {
-    count_activated(Field::from(lines),
+    count_activated(&Field::from(lines),
                     Beam{xpos: 0, ypos: 0, dir: Direction::E})
+}
+
+pub fn calc16b(lines: Vec<String>) -> i64 {
+    let field = Field::from(lines);
+    let mut max_act = 0;
+    for ix in 0..field.xdim {
+        let beam1 = Beam{xpos: ix, ypos:0, dir: Direction::S};
+        let beam2 = Beam{xpos: ix, ypos:field.ydim-1, dir: Direction::N};
+        let c1 = count_activated(&field, beam1);
+        let c2 = count_activated(&field, beam2);
+        max_act = cmp::max(max_act, c1);
+        max_act = cmp::max(max_act, c2);
+    }
+    for iy in 0..field.ydim {
+        let beam3 = Beam{xpos: 0, ypos: iy, dir: Direction::E};
+        let beam4 = Beam{xpos: field.xdim-1, ypos: iy, dir: Direction::W};
+        let c3 = count_activated(&field, beam3);
+        let c4 = count_activated(&field, beam4);
+        max_act = cmp::max(max_act, c3);
+        max_act = cmp::max(max_act, c4);
+    }
+    max_act
 }
