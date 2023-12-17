@@ -32,3 +32,4 @@ cargo run -q 14a <$datadir/advent14.txt
 cargo run -q 14b <$datadir/advent14.txt
 cargo run -q 15a <$datadir/advent15.txt
 cargo run -q 15b <$datadir/advent15.txt
+cargo run -q 16a <$datadir/advent16.txt
