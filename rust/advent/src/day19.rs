@@ -1,5 +1,8 @@
 use regex::Regex;
 use std::collections::HashMap;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt::Result;
 
 #[derive(Debug)]
 struct Flow {
@@ -7,7 +10,7 @@ struct Flow {
     rules: Vec<Rule>,
 }
 
-#[derive(Debug)]
+#[derive(Clone,Debug)]
 struct Rule {
     stat: char,
     cmp: char,
@@ -21,6 +24,22 @@ struct Part {
     m: i32,
     a: i32,
     s: i32,
+}
+
+#[derive(Copy,Clone,Debug)]
+struct Range {
+    lo: i32,
+    hi: i32,
+}
+
+#[derive(Clone,Copy,Debug)]
+struct Class {
+    ranges: [Range; 4],
+}
+
+struct SplitClass {
+    pass: Option<Class>,
+    fail: Option<Class>,
 }
 
 impl Rule {
@@ -39,11 +58,94 @@ impl Rule {
             _ => panic!(),
         }
     }
+    fn split(&self, class: &Class) -> SplitClass {
+        let class = class.clone();
+        let irange = match self.stat {
+            'x' => 0,
+            'm' => 1,
+            'a' => 2,
+            's' => 3,
+            '.' => {
+                return SplitClass{pass: Some(class), fail: None};
+            },
+            _ => panic!(),
+        };
+        let range = class.ranges[irange];
+        let num = self.num;
+        match self.cmp {
+            '.' => {
+                SplitClass{pass: Some(class), fail: None}
+            },
+            '<' => {
+                if num < range.lo {
+                    SplitClass{pass: None, fail: Some(class)}
+                }
+                else if num > range.hi {
+                    SplitClass{pass: Some(class), fail: None}
+                }
+                else {
+                    let pc = class.adjust_range(irange, range.lo, num-1);
+                    let fc = class.adjust_range(irange, num, range.hi);
+                    SplitClass{pass: Some(pc), fail: Some(fc)}
+                }
+            },
+            '>' => {
+                if num > range.hi {
+                    SplitClass{pass: None, fail: Some(class)}
+                }
+                else if num < range.lo {
+                    SplitClass{pass: Some(class), fail: None}
+                }
+                else {
+                    let pc = class.adjust_range(irange, num+1, range.hi);
+                    let fc = class.adjust_range(irange, range.lo, num);
+                    SplitClass{pass: Some(pc), fail: Some(fc)}
+                }
+            },
+            _ => panic!(),
+        }
+    }
 }
 
 impl Flow {
     fn next_dest(&self, part: &Part) -> &str {
         &self.rules.iter().find(|p| p.pass(part)).unwrap().dest[..]
+    }
+}
+
+impl Range {
+    fn new() -> Range {
+        Range{lo: 1, hi: 4000}
+    }
+}
+
+impl Class {
+    fn new() -> Class {
+        Class{
+            ranges: [Range::new(), Range::new(), Range::new(), Range::new()],
+        }
+    }
+    fn adjust_range(&self, irange: usize, lo: i32, hi: i32) -> Class {
+        let mut class = self.clone();
+        class.ranges[irange] = Range{lo: lo, hi: hi};
+        class
+    }
+    fn count_possibilities(&self) -> i64 {
+        let mut n: i64 = 1;
+        for range in self.ranges {
+            n *= (range.hi - range.lo + 1) as i64;
+        }
+        n
+    }
+}
+
+impl Display for Class {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}: {}-{}, {}: {}-{}, {}: {}-{}, {}: {}-{}",
+                  "x", self.ranges[0].lo, self.ranges[0].hi,
+                  "m", self.ranges[1].lo, self.ranges[1].hi,
+                  "a", self.ranges[2].lo, self.ranges[2].hi,
+                  "s", self.ranges[3].lo, self.ranges[3].hi)
     }
 }
 
@@ -95,6 +197,34 @@ fn is_accept(flow: &Flow, map: &HashMap<String,Flow>, part: &Part) -> bool {
     }
 }
 
+fn accept_classes(rules: &Vec<Rule>, map: &HashMap<String,Flow>, class: &Class)
+        -> Vec<Class> {
+    let mut accepts: Vec<Class> = Vec::new();
+    let mut class = class.clone();
+    for rule in rules {
+        let split_class = rule.split(&class);
+        if let Some(pass) = &split_class.pass {
+            match &rule.dest[..] {
+                "A" => {
+                    accepts.push(*pass);
+                },
+                "R" => {
+                },
+                _ => {
+                    let subflow = map.get(&rule.dest[..]).unwrap();
+                    for c in accept_classes(&subflow.rules, map, &pass) {
+                        accepts.push(c);
+                    }
+                }
+            }
+        }
+        if let Some(fail) = split_class.fail {
+            class = fail.clone();
+        }
+    }
+    accepts
+}
+
 pub fn calc19a(lines: Vec<String>) -> i64 {
     let mut map: HashMap<String,Flow> = HashMap::new();
     let mut parts: Vec<Part> = Vec::new();
@@ -120,6 +250,27 @@ pub fn calc19a(lines: Vec<String>) -> i64 {
         if is_accept(&flow0, &map, &part) {
             tot += (part.x + part.m + part.a + part.s) as i64;
         }
+    }
+    tot
+}
+
+pub fn calc19b(lines: Vec<String>) -> i64 {
+    let mut map: HashMap<String,Flow> = HashMap::new();
+    for line in lines {
+        if line.len() > 0 {
+            let flow = parse_flow(&line[..]);
+            map.insert(flow.label.clone(), flow);
+        }
+        else {
+            break;
+        }
+    }
+
+    let flow0 = map.get("in").unwrap();
+    let class0 = Class::new();
+    let mut tot: i64 = 0;
+    for class in accept_classes(&flow0.rules, &map, &class0) {
+        tot += class.count_possibilities();
     }
     tot
 }
