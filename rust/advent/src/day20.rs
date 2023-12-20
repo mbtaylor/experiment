@@ -16,6 +16,10 @@ enum Component {
         outputs: Vec<String>,
         inputs: HashMap<String,bool>,
     },
+    Output {
+        name: String,
+        outputs: Vec<String>,
+    },
 }
 
 #[derive(Debug,Clone)]
@@ -57,6 +61,9 @@ impl Component {
                 let send_high = !all_high;
                 Self::pulses(&name[..], &outputs, send_high)
             },
+            Component::Output{..} => {
+                vec![]
+            },
         }
     }
     fn outputs(&self) -> &Vec<String> {
@@ -64,6 +71,7 @@ impl Component {
             Component::Broadcaster{outputs, ..} => outputs,
             Component::FlipFlop{outputs, ..} => outputs,
             Component::Conjunction{outputs, ..} => outputs,
+            Component::Output{outputs, ..} => outputs,
         }
     }
     fn name(&self) -> &str {
@@ -71,6 +79,7 @@ impl Component {
             Component::Broadcaster{name, ..} => &name[..],
             Component::FlipFlop{name, ..} => &name[..],
             Component::Conjunction{name, ..} => &name[..],
+            Component::Output{name, ..} => &name[..],
         }
     }
 }
@@ -79,18 +88,32 @@ fn propagate_pulses(comp_map: &mut HashMap<String,Component>,
                     pulses: Vec<Pulse>) -> Vec<Pulse> {
     let mut next_pulses = Vec::new();
     for pulse in pulses {
-        let target_comp = comp_map.get_mut(&pulse.target[..]).unwrap();
-        for p in target_comp.receive(&pulse.src[..], pulse.is_high) {
-            next_pulses.push(p);
+        if let Some(target_comp) = comp_map.get_mut(&pulse.target[..]) {
+            for p in target_comp.receive(&pulse.src[..], pulse.is_high) {
+                next_pulses.push(p);
+            }
         }
     }
     next_pulses
 }
 
-pub fn calc20a(lines: Vec<String>) -> i64 {
+fn button_pulse() -> Pulse {
+    Pulse{
+        src: String::from("button"),
+        target: String::from("broadcaster"),
+        is_high: false
+    }
+}
+
+fn read_network(lines: Vec<String>) -> HashMap<String,Component> {
     let line_re = Regex::new("([%&]?)([a-z]+) -> ([a-z, ]+)").unwrap();
     let output_re = Regex::new(" *([a-z]+),? *").unwrap();
     let mut comp_map: HashMap<String,Component> = HashMap::new();
+    let output = Component::Output{
+        name: String::from("output"),
+        outputs: vec![],
+    };
+    comp_map.insert(String::from("output"), output);
     for line in lines {
         let (_, [ctype, name, outputs_txt]) =
             line_re.captures(&line[..]).unwrap().extract();
@@ -138,16 +161,15 @@ pub fn calc20a(lines: Vec<String>) -> i64 {
             }
         }
     }
+    comp_map
+}
 
-    let button_pulse = Pulse{
-        src: String::from("button"),
-        target: String::from("broadcaster"),
-        is_high: false
-    };
+pub fn calc20a(lines: Vec<String>) -> i64 {
+    let mut comp_map = read_network(lines);
     let mut nlo: i64 = 0;
     let mut nhi: i64 = 0;
     for i in 0..1000 {
-        let mut pulses: Vec<Pulse> = vec!(button_pulse.clone());
+        let mut pulses: Vec<Pulse> = vec!(button_pulse());
         nlo += 1;
         while pulses.len() > 0 {
             pulses = propagate_pulses(&mut comp_map, pulses);
