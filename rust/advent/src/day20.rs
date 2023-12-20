@@ -98,7 +98,7 @@ fn propagate_pulses(comp_map: &mut HashMap<String,Component>,
 }
 
 fn button_pulse() -> Pulse {
-    Pulse{
+    Pulse {
         src: String::from("button"),
         target: String::from("broadcaster"),
         is_high: false
@@ -184,4 +184,24 @@ pub fn calc20a(lines: Vec<String>) -> i64 {
         }
     }
     nlo * nhi
+}
+
+pub fn calc20b(lines: Vec<String>) -> i64 {
+    let mut comp_map = read_network(lines);
+    let mut ibutt: i64 = 0;
+    loop {
+        let mut pulses: Vec<Pulse> = vec!(button_pulse());
+        ibutt += 1;
+        if ibutt % 100_000 == 0 {
+            println!("...{}", ibutt);
+        }
+        while pulses.len() > 0 {
+            pulses = propagate_pulses(&mut comp_map, pulses);
+            for pulse in &pulses {
+                if &pulse.target[..] == "rx" && !pulse.is_high {
+                    return ibutt;
+                }
+            }
+        }
+    }
 }
