@@ -1,6 +1,10 @@
 use regex::Regex;
 use std::collections::HashMap;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt::Result;
 
+#[derive(Debug)]
 enum Component {
     Broadcaster {
         name: String,
@@ -81,6 +85,21 @@ impl Component {
             Component::Conjunction{name, ..} => &name[..],
             Component::Output{name, ..} => &name[..],
         }
+    }
+}
+
+impl Display for Component {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            Component::Conjunction{name, outputs, inputs} => {
+                _ = write!(f, "{}:", name);
+                for (k, v) in inputs {
+                    _ = write!(f, " {}-{}", k, if *v {1} else {0});
+                }
+            }
+            _ => (),
+        }
+        Ok(())
     }
 }
 
@@ -200,6 +219,15 @@ pub fn calc20b(lines: Vec<String>) -> i64 {
             for pulse in &pulses {
                 if &pulse.target[..] == "rx" && !pulse.is_high {
                     return ibutt;
+                }
+            }
+        }
+        for conlab in ["bt", "dl", "fr", "rv",
+                       "rs"] {
+            let con: &Component = comp_map.get(conlab).unwrap();
+            if let Component::Conjunction{inputs, ..} = con {
+                if inputs.values().any(|v| *v) {
+                    println!("{}  {}", ibutt, con);
                 }
             }
         }
