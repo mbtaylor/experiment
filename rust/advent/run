@@ -33,11 +33,14 @@ cargo run -q 14b <$datadir/advent14.txt
 cargo run -q 15a <$datadir/advent15.txt
 cargo run -q 15b <$datadir/advent15.txt
 cargo run -q 16a <$datadir/advent16.txt
+cargo run -q 16b <$datadir/advent16.txt
 echo "17a fail"
 echo "17b fail"
-cargo run -q 16b <$datadir/advent16.txt
 cargo run -q 18a <$datadir/advent18.txt
 echo "18b fail"
 cargo run -q 19a <$datadir/advent19.txt
 cargo run -q 19b <$datadir/advent19.txt
 cargo run -q 20a <$datadir/advent20.txt
+echo "20b fail"
+echo "21a -> 3764 takes about 30 sec"
+echo "21b fail"
