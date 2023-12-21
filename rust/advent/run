@@ -2,45 +2,45 @@
 
 datadir=../../data
 
-cargo run -q 01a <$datadir/advent01.txt
-cargo run -q 01b <$datadir/advent01.txt
-cargo run -q 02a <$datadir/advent02.txt
-cargo run -q 02b <$datadir/advent02.txt
-cargo run -q 03a <$datadir/advent03.txt
-cargo run -q 03b <$datadir/advent03.txt
-cargo run -q 04a <$datadir/advent04.txt
-cargo run -q 04b <$datadir/advent04.txt
-cargo run -q 05a <$datadir/advent05.txt
-cargo run -q 05b <$datadir/advent05.txt
-cargo run -q 06a <$datadir/advent06.txt
-cargo run -q 06b <$datadir/advent06.txt
-cargo run -q 07a <$datadir/advent07.txt
-cargo run -q 07b <$datadir/advent07.txt
-cargo run -q 08a <$datadir/advent08.txt
+cargo run --release --release -q 01a <$datadir/advent01.txt
+cargo run --release -q 01b <$datadir/advent01.txt
+cargo run --release -q 02a <$datadir/advent02.txt
+cargo run --release -q 02b <$datadir/advent02.txt
+cargo run --release -q 03a <$datadir/advent03.txt
+cargo run --release -q 03b <$datadir/advent03.txt
+cargo run --release -q 04a <$datadir/advent04.txt
+cargo run --release -q 04b <$datadir/advent04.txt
+cargo run --release -q 05a <$datadir/advent05.txt
+cargo run --release -q 05b <$datadir/advent05.txt
+cargo run --release -q 06a <$datadir/advent06.txt
+cargo run --release -q 06b <$datadir/advent06.txt
+cargo run --release -q 07a <$datadir/advent07.txt
+cargo run --release -q 07b <$datadir/advent07.txt
+cargo run --release -q 08a <$datadir/advent08.txt
 echo "08b -> 14265111103729 (from java, and slow)"
-cargo run -q 09a <$datadir/advent09.txt
-cargo run -q 09b <$datadir/advent09.txt
-cargo run -q 10a <$datadir/advent10.txt
-cargo run -q 10b <$datadir/advent10.txt
-cargo run -q 11a <$datadir/advent11.txt
-cargo run -q 11b <$datadir/advent11.txt
-cargo run -q 12a <$datadir/advent12.txt
+cargo run --release -q 09a <$datadir/advent09.txt
+cargo run --release -q 09b <$datadir/advent09.txt
+cargo run --release -q 10a <$datadir/advent10.txt
+cargo run --release -q 10b <$datadir/advent10.txt
+cargo run --release -q 11a <$datadir/advent11.txt
+cargo run --release -q 11b <$datadir/advent11.txt
+cargo run --release -q 12a <$datadir/advent12.txt
 echo "12b fail"
-cargo run -q 13a <$datadir/advent13.txt
-cargo run -q 13b <$datadir/advent13.txt
-cargo run -q 14a <$datadir/advent14.txt
-cargo run -q 14b <$datadir/advent14.txt
-cargo run -q 15a <$datadir/advent15.txt
-cargo run -q 15b <$datadir/advent15.txt
-cargo run -q 16a <$datadir/advent16.txt
-cargo run -q 16b <$datadir/advent16.txt
+cargo run --release -q 13a <$datadir/advent13.txt
+cargo run --release -q 13b <$datadir/advent13.txt
+cargo run --release -q 14a <$datadir/advent14.txt
+cargo run --release -q 14b <$datadir/advent14.txt
+cargo run --release -q 15a <$datadir/advent15.txt
+cargo run --release -q 15b <$datadir/advent15.txt
+cargo run --release -q 16a <$datadir/advent16.txt
+cargo run --release -q 16b <$datadir/advent16.txt
 echo "17a fail"
 echo "17b fail"
-cargo run -q 18a <$datadir/advent18.txt
+cargo run --release -q 18a <$datadir/advent18.txt
 echo "18b fail"
-cargo run -q 19a <$datadir/advent19.txt
-cargo run -q 19b <$datadir/advent19.txt
-cargo run -q 20a <$datadir/advent20.txt
+cargo run --release -q 19a <$datadir/advent19.txt
+cargo run --release -q 19b <$datadir/advent19.txt
+cargo run --release -q 20a <$datadir/advent20.txt
 echo "20b fail"
-echo "21a -> 3764 takes about 30 sec"
+cargo run --release -q 21a <$datadir/advent21.txt
 echo "21b fail"
