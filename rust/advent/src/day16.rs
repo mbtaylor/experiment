@@ -1,6 +1,8 @@
-use std::cmp;
 use std::collections::HashSet;
+use std::sync::mpsc;
+use std::thread;
 
+#[derive(Clone)]
 struct Field {
     rows: Vec<Vec<u8>>,
     xdim: usize,
@@ -142,22 +144,46 @@ pub fn calc16a(lines: Vec<String>) -> i64 {
 
 pub fn calc16b(lines: Vec<String>) -> i64 {
     let field = Field::from(lines);
-    let mut max_act = 0;
-    for ix in 0..field.xdim {
-        let beam1 = Beam{xpos: ix, ypos:0, dir: Direction::S};
-        let beam2 = Beam{xpos: ix, ypos:field.ydim-1, dir: Direction::N};
-        let c1 = count_activated(&field, beam1);
-        let c2 = count_activated(&field, beam2);
-        max_act = cmp::max(max_act, c1);
-        max_act = cmp::max(max_act, c2);
-    }
-    for iy in 0..field.ydim {
-        let beam3 = Beam{xpos: 0, ypos: iy, dir: Direction::E};
-        let beam4 = Beam{xpos: field.xdim-1, ypos: iy, dir: Direction::W};
-        let c3 = count_activated(&field, beam3);
-        let c4 = count_activated(&field, beam4);
-        max_act = cmp::max(max_act, c3);
-        max_act = cmp::max(max_act, c4);
-    }
-    max_act
+    let (tx, rx) = mpsc::channel();
+    let xdim = field.xdim;
+    let ydim = field.ydim;
+
+    let tx1 = tx.clone();
+    let tx2 = tx.clone();
+    let tx3 = tx.clone();
+    let tx4 = tx;
+    // or let tx4 = tx.clone(); drop(tx);
+    let field1 = field.clone();
+    let field2 = field.clone();
+    let field3 = field.clone();
+    let field4 = field.clone();
+    thread::spawn(move || {
+        let max = (0..xdim).map(|ix| {
+            count_activated(&field1,
+                            Beam{xpos: ix, ypos: 0, dir: Direction::S})
+        }).max().unwrap();
+        tx1.send(max).unwrap();
+    });
+    thread::spawn(move || {
+        let max = (0..xdim).map(|ix| {
+            count_activated(&field2,
+                            Beam{xpos: ix, ypos: ydim-1, dir: Direction::N})
+        }).max().unwrap();
+        tx2.send(max).unwrap();
+    });
+    thread::spawn(move || {
+        let max = (0..ydim).map(|iy| {
+            count_activated(&field3,
+                            Beam{xpos: 0, ypos: iy, dir: Direction::E})
+        }).max().unwrap();
+        tx3.send(max).unwrap();
+    });
+    thread::spawn(move || {
+        let max = (0..ydim).map(|iy| {
+            count_activated(&field4,
+                            Beam{xpos: xdim-1, ypos: iy, dir: Direction::W})
+        }).max().unwrap();
+        tx4.send(max).unwrap();
+    });
+    rx.iter().max().unwrap()
 }
