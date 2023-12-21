@@ -17,7 +17,7 @@ cargo run --release -q 06b <$datadir/advent06.txt
 cargo run --release -q 07a <$datadir/advent07.txt
 cargo run --release -q 07b <$datadir/advent07.txt
 cargo run --release -q 08a <$datadir/advent08.txt
-echo "08b -> 14265111103729 (from java, and slow)"
+echo "08b -> 14265111103729 (3min in rust, or 18 min in java)"
 cargo run --release -q 09a <$datadir/advent09.txt
 cargo run --release -q 09b <$datadir/advent09.txt
 cargo run --release -q 10a <$datadir/advent10.txt
