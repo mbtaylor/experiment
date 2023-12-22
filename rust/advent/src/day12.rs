@@ -32,23 +32,23 @@ impl SpringState {
             },
         }
     }
-    fn simplify(&self) -> SpringState {
-        let mut txt = self.txt.clone();
-        let mut counts = self.counts.clone();
-        while txt[0] != b'?' {
-            if txt[0] == b'#' && counts.len() > 0 {
-                txt.remove(0);
-                counts[0] -= 1;
-                if counts[0] == 0 {
-                    counts.remove(0);
-                }
-            }
-            else if txt[0] == b'.' {
-                txt.remove(0);
-            }
-        }
-        SpringState{txt, counts}
-    }
+//  fn simplify(&self) -> SpringState {
+//      let mut txt = self.txt.clone();
+//      let mut counts = self.counts.clone();
+//      while txt[0] != b'?' {
+//          if txt[0] == b'#' && counts.len() > 0 {
+//              txt.remove(0);
+//              counts[0] -= 1;
+//              if counts[0] == 0 {
+//                  counts.remove(0);
+//              }
+//          }
+//          else if txt[0] == b'.' {
+//              txt.remove(0);
+//          }
+//      }
+//      SpringState{txt, counts}
+//  }
 
     fn can_match(&self) -> bool {
         let ngrp = self.counts.len();
