@@ -2,7 +2,7 @@
 
 datadir=../../data
 
-cargo run --release --release -q 01a <$datadir/advent01.txt
+cargo run --release -q 01a <$datadir/advent01.txt
 cargo run --release -q 01b <$datadir/advent01.txt
 cargo run --release -q 02a <$datadir/advent02.txt
 cargo run --release -q 02b <$datadir/advent02.txt
