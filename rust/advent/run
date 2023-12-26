@@ -45,3 +45,4 @@ echo "20b fail"
 cargo run --release -q 21a <$datadir/advent21.txt
 echo "21b fail"
 cargo run --release -q 22a <$datadir/advent22.txt
+cargo run --release -q 22b <$datadir/advent22.txt

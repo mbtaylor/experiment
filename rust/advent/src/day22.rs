@@ -1,9 +1,11 @@
 use regex::Regex;
 use std::cmp;
+use std::collections::HashMap;
 use std::collections::HashSet;
 
-#[derive(Debug)]
+#[derive(Debug,Clone,Copy)]
 struct Block {
+    index: usize,
     p1: Pos,
     p2: Pos,
 }
@@ -87,21 +89,56 @@ impl Field {
     }
 }
 
-pub fn calc22a(lines: Vec<String>) -> i64 {
+fn read_blocks(lines: Vec<String>) -> Vec<Block> {
     let line_re =
         Regex::new("([0-9]+),([0-9]+),([0-9]+)~([0-9]+),([0-9]+),([0-9]+)")
        .unwrap();
     let mut blocks: Vec<Block> = Vec::new();
-    for line in lines {
+    for (ib, line) in lines.iter().enumerate() {
         let (_, [x1, y1, z1, x2, y2, z2]) =
             line_re.captures(&line).unwrap().extract();
-        blocks.push(Block{p1: Pos{x: x1.parse().unwrap(),
+        blocks.push(Block{index: ib,
+                          p1: Pos{x: x1.parse().unwrap(),
                                   y: y1.parse().unwrap(),
                                   z: z1.parse().unwrap()},
                           p2: Pos{x: x2.parse().unwrap(),
                                   y: y2.parse().unwrap(),
                                   z: z2.parse().unwrap()}});
     }
+    blocks
+}
+
+// output is map from block index to resting height
+fn resting_heights(sorted_blocks: &Vec<Block>) -> HashMap<usize,usize> {
+    let mut mins: [usize; 3] = [0, 0, 0];
+    let mut maxs: [usize; 3] = [0, 0, 0];
+    for block in sorted_blocks {
+        for i in 0..3 {
+            mins[i] = cmp::min(mins[i], cmp::min(block.p1.component(i),
+                                                 block.p2.component(i)));
+            maxs[i] = cmp::max(maxs[i], cmp::max(block.p1.component(i),
+                                                 block.p2.component(i)));
+        }
+    }
+    let xdim = maxs[0]+1;
+    let ydim = maxs[1]+1;
+    let mut field = Field::new(xdim, ydim);
+    let mut heights: HashMap<usize,usize> = HashMap::new();
+    for (ib, block) in sorted_blocks.iter().enumerate() {
+        let mut h = 0;
+        for cell in block.cells() {
+            let pile = field.get_pile(cell.x, cell.y);
+            h = cmp::max(h, pile.len());
+        }
+        field.place_block(ib, &block, h);
+        let flag = heights.insert(block.index, h);
+	assert!(flag==None);
+    }
+    heights
+}
+
+pub fn calc22a(lines: Vec<String>) -> i64 {
+    let mut blocks = read_blocks(lines);
     blocks.sort_by(|a, b|             cmp::min(&a.p1.z, &a.p2.z)
                          .partial_cmp(cmp::min(&b.p1.z, &b.p2.z)).unwrap());
     let mut mins: [usize; 3] = [0, 0, 0];
@@ -125,6 +162,7 @@ pub fn calc22a(lines: Vec<String>) -> i64 {
         }
         field.place_block(ib, &block, h);
     }
+
     let mut supporters: Vec<HashSet<usize>> = Vec::new();
     let nblock = blocks.len();
     for ib in 0..nblock {
@@ -155,3 +193,31 @@ pub fn calc22a(lines: Vec<String>) -> i64 {
     let tot = nblock - sole_supporters.len();
     tot as i64
 }
+
+pub fn calc22b(lines: Vec<String>) -> i64 {
+    let blocks = read_blocks(lines);
+    let nblock = blocks.len();
+    let cmp = |a: &Block, b: &Block| cmp::min(&a.p1.z, &a.p2.z)
+                        .partial_cmp(cmp::min(&b.p1.z, &b.p2.z)).unwrap();
+    let mut blocks0 = blocks.clone();
+    blocks0.sort_by(cmp);
+    let heights0 = resting_heights(&blocks0);
+    let boost = 10000;
+    let mut tot = 0;
+    for ib in 0..nblock {
+        let mut blocks1 = blocks.clone();
+        let block = blocks1.get_mut(ib).unwrap();
+        block.p1.z += boost;
+        block.p2.z += boost;
+        blocks1.sort_by(cmp);
+        let heights1 = resting_heights(&blocks1);
+        let ndiff: i64 =
+            heights0.keys()
+                    .filter(|k| *k!=&ib)
+                    .map(|k| if heights0.get(k)==heights1.get(k) {0} else {1})
+                    .sum();
+        tot += ndiff;
+    }
+    tot
+}
+
