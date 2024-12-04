@@ -21,6 +21,8 @@ function slices(leng::Int64)
    map(dir->collect((i*dir[1],i*dir[2]) for i in 0:leng-1), dirs)
 end
 
+is_ms(c1, c2) = (c1 == 'M' && c2 == 'S') || (c1 == 'S' && c2 == 'M')
+
 function part1(lines)
    leng = 4;
    pad = leng
@@ -41,8 +43,26 @@ function part1(lines)
    tot
 end
 
+function part2(lines)
+   pad = 1
+   grid = WordSearch(lines, pad)
+   tot = 0
+   for j = pad+1:size(grid, 2)-pad
+      for i = pad+1:size(grid, 1)-pad
+         if grid[i, j] == 'A'
+            if ( is_ms(grid[i+1,j+1], grid[i-1,j-1]) &&
+                 is_ms(grid[i-1,j+1], grid[i+1,j-1]) )
+                tot += 1
+            end
+         end
+      end
+   end
+   tot
+end
+
 lines = readlines("../../data/advent2024/day04.txt")
 
 println(part1(lines))
+println(part2(lines))
  
 
