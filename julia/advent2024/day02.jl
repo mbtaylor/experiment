@@ -35,7 +35,7 @@ function part2(lines)
    count(is_safe2.(intify.(split.(lines))))
 end
 
-lines = readlines("../../data/advent2025/day02.txt")
+lines = readlines("../../data/advent2024/day02.txt")
 
 println(part1(lines))
 println(part2(lines))

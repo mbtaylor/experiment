@@ -18,7 +18,7 @@ function part2(lines)
    sum(map(k -> k*get(counts2, k, 0), list1))
 end
 
-lines = readlines("../../data/advent2025/day01.txt")
+lines = readlines("../../data/advent2024/day01.txt")
 println(part1(lines))
 println(part2(lines))
 
