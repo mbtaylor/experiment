@@ -15,6 +15,10 @@ Base.getindex(ws::WordSearch, i::Int, j::Int) = begin
    pj = j - ws.pad
    pi > 0 && pi <= ws.w0 && pj > 0 && pj <= ws.h0 ? ws.lines[pj][pi] : ' '
 end
+positions(ws::WordSearch) = begin
+   ((i, j) for i in ws.pad+1:size(ws, 1)-ws.pad,
+               j in ws.pad+1:size(ws, 2)-ws.pad)
+end
 
 function slices(leng::Int64)
    dirs = collect((dx,dy) for dx in -1:1, dy in -1:1 if dx!=0 || dy!=0)[1:end]
@@ -29,14 +33,11 @@ function part1(lines)
    grid = WordSearch(lines, pad)
    vecs = slices(leng)
    tot = 0
-   for j = pad+1:size(grid, 2)-pad
-      for i in pad+1:size(grid, 1)-pad
-         for vec in vecs
-            word = String(collect(grid[i+vec[k][1], j+vec[k][2]]
-                                  for k in 1:leng))
-            if word == "XMAS"
-               tot += 1
-            end
+   for (i, j) in positions(grid)
+      for vec in vecs
+         word = String(collect(grid[i+vec[k][1], j+vec[k][2]] for k in 1:leng))
+         if word == "XMAS"
+            tot += 1
          end
       end
    end
@@ -47,13 +48,11 @@ function part2(lines)
    pad = 1
    grid = WordSearch(lines, pad)
    tot = 0
-   for j = pad+1:size(grid, 2)-pad
-      for i = pad+1:size(grid, 1)-pad
-         if grid[i, j] == 'A'
-            if ( is_ms(grid[i+1,j+1], grid[i-1,j-1]) &&
-                 is_ms(grid[i-1,j+1], grid[i+1,j-1]) )
-                tot += 1
-            end
+   for (i, j) in positions(grid)
+      if grid[i, j] == 'A'
+         if ( is_ms(grid[i+1,j+1], grid[i-1,j-1]) &&
+              is_ms(grid[i-1,j+1], grid[i+1,j-1]) )
+             tot += 1
          end
       end
    end
