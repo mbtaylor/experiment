@@ -39,24 +39,13 @@ function is_ordered(rules::Vector{Rule}, update::Update)
    true
 end
 
-function contains_page(update::Update, page::Int64)
-   page in update.pages
-end
-
 function page_order(rules::Vector{Rule}, update::Update)
-   rules0 = rules
-   rules::Vector{Rule} = []
-   for r in rules0
-      if contains_page(update, r.lo) && contains_page(update, r.hi)
-         push!(rules, r)
-      end
-   end
-#  rules = filter(r -> findfirst(p->r.lo==p||r.hi==p, update.pages) != nothing, 
-#                 rules)
-   seq::Vector{Int64} = []
+   # throw out irrlevant rules - there are some evil ones in there
+   rules = filter(r -> r.lo in update.pages && r.hi in update.pages, rules)
    # Look for a number that only appears on the right - it's the highest
    ihi = findfirst(r -> findfirst(q->q.lo==r.hi, rules) == nothing, rules)
    hi = rules[ihi].hi
+   seq::Vector{Int64} = []
    while length(rules) > 0
       ilo = findfirst(r -> findfirst(q->q.hi==r.lo, rules) == nothing, rules)
       lo = rules[ilo].lo
@@ -68,13 +57,7 @@ function page_order(rules::Vector{Rule}, update::Update)
 end
 
 function reorder(update::Update, order::Vector{Int64})
-   out::Vector{Int64} = []
-   for p in order
-      if findfirst(r->r==p, update.pages) != nothing
-         push!(out, p)
-      end
-   end
-   Update(out)
+   Update(filter(p -> p in update.pages, order))
 end
 
 function part1(lines)
@@ -94,24 +77,9 @@ function part2(lines)
    tot
 end
 
-function diag(lines)
-   (rules, updates) = read_proto(lines)
-   for i in 10:99
-     nlo = length(filter(r->r.lo==i, rules))
-     nhi = length(filter(r->r.hi==i, rules))
-     if nlo != 0 || nhi != 0
-        println(i, "\t", nlo, "\t", nhi)
-     end
-   end
-end
-
 lines = readlines("../../data/advent2024/day05.txt")
-# lines = readlines("../../data/advent2024/test05.txt")
-
-# diag(lines)
 
 println(part1(lines))
-
 println(part2(lines))
 
 
