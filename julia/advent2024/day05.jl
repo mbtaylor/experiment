@@ -39,8 +39,9 @@ function is_ordered(rules::Vector{Rule}, update::Update)
    true
 end
 
-function page_order(rules::Vector{Rule})
-   rules = copy(rules)
+function page_order(rules::Vector{Rule}, update::Update)
+   rules = filter(r -> findfirst(p->r.lo==p||r.hi==p, update.pages) != nothing, 
+                  rules)
    seq::Vector{Int64} = []
    # Look for a number that only appears on the right - it's the highest
    ihi = findfirst(r -> findfirst(q->q.lo==r.hi, rules) == nothing, rules)
@@ -72,12 +73,14 @@ end
 
 function part2(lines)
    (rules, updates) = read_proto(lines)
-   order = page_order(rules)
-#println("order: ", order)
-#for up in updates
-#  println(reorder(up, order))
-#end
-   sum(middle(reorder(up, order)) for up in updates if !is_ordered(rules, up))
+   tot = 0
+   for update in updates
+      order = page_order(rules, update)
+      if !is_ordered(rules, update)
+         tot += middle(reorder(update, order))
+      end
+   end
+   tot
 end
 
 function diag(lines)
@@ -91,7 +94,8 @@ function diag(lines)
    end
 end
 
-lines = readlines("../../data/advent2024/test05.txt")
+lines = readlines("../../data/advent2024/day05.txt")
+# lines = readlines("../../data/advent2024/test05.txt")
 
 # diag(lines)
 
