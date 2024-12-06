@@ -39,9 +39,20 @@ function is_ordered(rules::Vector{Rule}, update::Update)
    true
 end
 
+function contains_page(update::Update, page::Int64)
+   page in update.pages
+end
+
 function page_order(rules::Vector{Rule}, update::Update)
-   rules = filter(r -> findfirst(p->r.lo==p||r.hi==p, update.pages) != nothing, 
-                  rules)
+   rules0 = rules
+   rules::Vector{Rule} = []
+   for r in rules0
+      if contains_page(update, r.lo) && contains_page(update, r.hi)
+         push!(rules, r)
+      end
+   end
+#  rules = filter(r -> findfirst(p->r.lo==p||r.hi==p, update.pages) != nothing, 
+#                 rules)
    seq::Vector{Int64} = []
    # Look for a number that only appears on the right - it's the highest
    ihi = findfirst(r -> findfirst(q->q.lo==r.hi, rules) == nothing, rules)
