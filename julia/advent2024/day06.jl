@@ -99,9 +99,25 @@ function part2(lines)
    tot
 end
 
+function part2_multithreaded(lines)
+   grid = Grid(lines, 1)
+   tot = Threads.Atomic{Int64}(0)
+   # Doesn't work!
+   # Threads.@threads for (i, j) in positions(grid)
+   for (i, j) in positions(grid)
+      if grid[i, j] == '.'
+         bgrid = BlockedGrid(grid, i, j)
+         if is_loop(bgrid)
+            Threads.atomic_add!(tot, 1)
+         end
+      end
+   end
+   tot[]
+end
+
 lines = readlines("../../data/advent2024/day06.txt")
 
 println(part1(lines))
-println(part2(lines))
+println(part2_multithreaded(lines))
 
 
