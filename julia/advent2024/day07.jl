@@ -22,6 +22,25 @@ function calculate(ops, flagint)
    s
 end
 
+function calculate3(ops, opflags3)
+   nop = length(ops)
+   s = ops[1]
+   for i = 0:(nop-2)
+      op = ops[i+2]
+      optype = (opflags3÷(3^i))%3
+      if optype == 0
+         s = s + op
+      elseif optype == 1
+         s = s * op
+      elseif optype == 2
+         s = parse(Int64, "$(s)$(op)")
+      else
+         error("Uh-oh")
+      end
+   end
+   s
+end
+
 function is_possible(sum::Sum)
    nop = length(sum.operands)
    for i in 0:(1<<(nop-1))
@@ -29,15 +48,30 @@ function is_possible(sum::Sum)
          return true
       end
    end
-   return false
+   false
+end
+
+function is_possible3(sum::Sum)
+   nop = length(sum.operands)
+   for i in 0:3^(nop-1)
+      if calculate3(sum.operands, i) == sum.answer
+         return true
+      end
+   end
+   false
 end
 
 function part1(sums)
    sum(s.answer for s in sums if is_possible(s))
 end
 
+function part2(sums)
+   sum(s.answer for s in sums if is_possible3(s))
+end
+
 lines = readlines("../../data/advent2024/day07.txt")
 sums = collect(map(l -> Sum(l), lines))
 
 println(part1(sums))
+println(part2(sums))
 
