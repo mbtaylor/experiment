@@ -102,9 +102,7 @@ end
 function part2_multithreaded(lines)
    grid = Grid(lines, 1)
    tot = Threads.Atomic{Int64}(0)
-   # Doesn't work!
-   # Threads.@threads for (i, j) in positions(grid)
-   for (i, j) in positions(grid)
+   Threads.@threads for (i, j) in collect(positions(grid))
       if grid[i, j] == '.'
          bgrid = BlockedGrid(grid, i, j)
          if is_loop(bgrid)
