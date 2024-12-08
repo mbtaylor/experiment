@@ -16,11 +16,18 @@ positions(g::Grid) = begin
    ((i, j) for i in g.pad+1:size(g, 1)-g.pad,
                j in g.pad+1:size(g, 2)-g.pad)
 end
+in_grid(g::Grid, p::CartesianIndex{2}) = begin
+   p[1] > g.pad && p[1] <= g.w0+g.pad && p[2] > g.pad && p[2] <=g.h0+g.pad
+end
 
 function get_freqs(grid::Grid)
    freqs = Set(grid[CartesianIndex(i)] for i in positions(grid))
    delete!(freqs, '.')
    freqs
+end
+
+function minimal_vector(v::CartesianIndex{2})
+   v # I was expecting to have to do more work here
 end
 
 function count_antinodes(grid, antinodes_func)
@@ -48,8 +55,19 @@ function part1(lines)
    count_antinodes(grid, antinoder)
 end
 
+function part2(lines)
+   grid = Grid(lines, 0)
+   dim = max(length(lines[1]), length(lines))
+   function antinoder(a::CartesianIndex{2}, b::CartesianIndex{2}) 
+      v = minimal_vector(a-b)
+      filter(p -> in_grid(grid, p), collect(a+i*v for i in -dim:dim))
+   end
+   count_antinodes(grid, antinoder)
+end
+
 lines = readlines("../../data/advent2024/day08.txt")
 
 println(part1(lines))
+println(part2(lines))
 
 
