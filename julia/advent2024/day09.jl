@@ -25,8 +25,8 @@ function checksum(chunks::Vector{Chunk})
       for i in 1:c.count
          if c.inode != nothing
             sum += ipos * c.inode
-            ipos += 1
          end
+         ipos += 1
       end
    end
    sum
@@ -57,6 +57,27 @@ function part1(line)
    checksum(output)
 end
 
+function part2(line)
+   chunks = read_chunks(line)
+   i = length(chunks)
+   while i > 0
+      if chunks[i].inode != nothing
+         ichunk = chunks[i]
+         for j in 1:i
+            if chunks[j].inode == nothing && chunks[j].count >= ichunk.count
+               chunks[j].count -= ichunk.count
+               chunks[i] = Chunk(nothing, ichunk.count)
+               insert!(chunks, j, ichunk)
+               break
+            end
+         end
+      end
+      i -= 1
+   end
+   checksum(chunks)
+end
+
+
 function print_chunks(chunks::Vector{Chunk})
    for c in chunks
       print((c.inode == nothing ? "." : repr(c.inode))^c.count)
@@ -64,6 +85,8 @@ function print_chunks(chunks::Vector{Chunk})
    println()
 end
 
-line = readline("../../data/advent2024/data09.txt")
+line = readline("../../data/advent2024/day09.txt")
 
 println(part1(line))
+println(part2(line))
+
