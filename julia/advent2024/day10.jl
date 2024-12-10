@@ -49,7 +49,20 @@ function part1(lines)
    tot
 end
 
+function part2(lines)
+   grid = Grid(lines, 1)
+   starts = findall(c -> c == '0', grid)
+   tot = 0
+   for s in starts
+      routes = collect(filter(r -> length(r) == 10, next_routes(grid, [s])))
+      score = length(routes)
+      tot += score
+   end
+   tot
+end
+
 lines = readlines("../../data/advent2024/day10.txt")
 
 println(part1(lines))
+println(part2(lines))
 
