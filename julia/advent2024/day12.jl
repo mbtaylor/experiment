@@ -29,8 +29,10 @@ function Base.show(io::IO, region::Region)
         sort!(collect(region.members))))
 end
 
+nesw = ((0,1), (1,0), (0,-1), (-1,0))
+
 function neighbours(pos::XYPos)
-   map(p -> pos + XYPos(p), ((0,1), (1,0), (0,-1), (-1,0)))
+   map(p -> pos + XYPos(p), nesw)
 end
 
 function neighbour_regions(field::Vector{Region}, type::Char, pos::XYPos)
@@ -44,7 +46,6 @@ function neighbour_regions(field::Vector{Region}, type::Char, pos::XYPos)
    end
    regions
 end
-
 
 function segment(grid)
    field::Vector{Region} = Vector();
@@ -67,26 +68,71 @@ function segment(grid)
    field
 end
 
-function score(region::Region)
-   members = region.members
-   area = length(members)
+function area(region::Region)
+   length(region.members)
+end
+
+function perimeter(region::Region)
    perimeter = 0
-   for m in members
-      nin = length(findall(n -> n in members, neighbours(m)))
+   for m in region.members
+      nin = length(findall(n -> n in region.members, neighbours(m)))
       perimeter += 4-nin
    end
-   # println("+++ ", area, " * ", perimeter, " = ", area*perimeter)
-   area * perimeter
+   perimeter
+end
+
+function count_edges(region::Region)
+   members = region.members
+   nedge = 0
+   for dir in nesw
+      segs::Vector{XYPos} = collect(filter(m -> m+XYPos(dir) ∉ members,
+                                    members))
+      isX = dir[1] == 0
+      nedge += count_runs(segs, isX)
+   end
+   return nedge
+end
+
+function count_runs(segs::Vector{XYPos}, isX::Bool)
+   runs::Vector{Set{XYPos}} = Vector()
+   order = isX ? p->p[1] : p->p[2]
+   rundir = isX ? XYPos(1, 0) : XYPos(0, 1)
+   for seg in sort(collect(segs), by=order)
+      irun = findfirst(r -> seg+rundir in r || seg-rundir in r, runs)
+      if irun == nothing
+         run::Set{XYPos} = Set()
+         push!(runs, run)
+      else
+         run = runs[irun]
+      end
+      push!(run, seg)
+   end
+   length(runs)
+end
+
+function score1(region::Region)
+   area(region) * perimeter(region)
+end
+
+function score2(region::Region)
+   area(region) * count_edges(region)
 end
 
 function part1(lines)
    grid = Grid(lines, 1)
    field = segment(grid)
-   sum(map(score, field))
+   sum(map(score1, field))
+end
+
+function part2(lines)
+   grid = Grid(lines, 1)
+   field = segment(grid)
+   sum(map(score2, field))
 end
 
 
 lines = readlines("../../data/advent2024/day12.txt")
 
 println(part1(lines))
+println(part2(lines))
 
