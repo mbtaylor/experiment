@@ -29,11 +29,15 @@ function Base.show(io::IO, region::Region)
         sort!(collect(region.members))))
 end
 
+function neighbours(pos::XYPos)
+   map(p -> pos + XYPos(p), ((0,1), (1,0), (0,-1), (-1,0)))
+end
+
 function neighbour_regions(field::Vector{Region}, type::Char, pos::XYPos)
    regions::Set{Region} = Set()
    for region in filter(r->r.type == type, field)
-      for vec in map(XYPos, ((0,1), (1,0), (0,-1), (-1,0)))
-         if (pos + vec) in region.members
+      for n in neighbours(pos)
+         if n in region.members
             push!(regions, region)
          end
       end
@@ -63,17 +67,26 @@ function segment(grid)
    field
 end
 
+function score(region::Region)
+   members = region.members
+   area = length(members)
+   perimeter = 0
+   for m in members
+      nin = length(findall(n -> n in members, neighbours(m)))
+      perimeter += 4-nin
+   end
+   # println("+++ ", area, " * ", perimeter, " = ", area*perimeter)
+   area * perimeter
+end
+
 function part1(lines)
    grid = Grid(lines, 1)
+   field = segment(grid)
+   sum(map(score, field))
 end
 
 
-lines = readlines("../../data/advent2024/test12.txt")
-grid = Grid(lines, 1)
-field = segment(grid)
-println(length(field))
-for r in field
-   println(r)
-end
+lines = readlines("../../data/advent2024/day12.txt")
 
+println(part1(lines))
 
