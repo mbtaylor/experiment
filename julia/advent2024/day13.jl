@@ -34,12 +34,11 @@ function to_games2(lines)
 end
 
 function solve(game)
-   m = [game.A.x game.B.x; game.A.y game.B.y]
-   p = [game.P.x; game.P.y]
-   (da, db) = inv(m) * p
-   # I bet I should be using Rational here
-   (na, nb) = (da, db) .|> round .|> Int64
-   m * [na; nb] == p ? (na, nb) : nothing
+   m = map(Rational, [game.A.x game.B.x; game.A.y game.B.y])
+   p = map(Rational, [game.P.x; game.P.y])
+   (ra, rb) = inv(m) * p
+   (denominator(ra) == 1 && denominator(rb) == 1 ? (Int64(ra), Int64(rb)) 
+                                                 : nothing)
 end
 
 function cost(solution)
