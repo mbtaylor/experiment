@@ -31,12 +31,26 @@ end
 function right(node::Node)
    Node(node.x, node.y, mod1(4, node.idir-1))
 end
+function xypos(node::Node)
+   CartesianIndex(node.x, node.y)
+end
 
 # I hate 1-based arrays
 mod1(n,i) = ((i-1+n)%n)+1
 
 enws = ((+1,0), (0,-1), (-1,0), (0,+1))
 ndir = length(enws)
+
+function find_paths(tree::Dict{Node,Vector{Node}}, nodes::Vector{Node})
+   paths::Set{Node} = Set()
+   for n0 in nodes
+      push!(paths, n0)
+      for n1 in find_paths(tree, tree[n0])
+         push!(paths, n1)
+      end
+   end
+   paths
+end
 
 function part1(lines)
    grid = Grid(lines, 0)
@@ -69,7 +83,49 @@ function part1(lines)
    Int64(minimum(distances[n] for n in end_nodes))
 end
 
-lines = readlines("../../data/advent2024/day16.txt")
+function part2(lines)
+   grid = Grid(lines, 0)
+   xy_start = findfirst(c->c=='S', grid)
+   xy_end = findfirst(c->c=='E', grid)
+   nodes = [Node(p[1], p[2], idir) for idir in 1:4,
+                                   p in positions(grid) if grid[p] != '#']
+   distances::Dict{Node,Float64} = Dict(n => Inf for n in nodes)
+   distances[Node(xy_start[1], xy_start[2], 1)] = 0
+   unvisited = Set(nodes)
+   end_nodes = [Node(xy_end[1], xy_end[2], idir) for idir in 1:4]
+   predecessors::Dict{Node,Vector{Node}} = Dict(n => [] for n in nodes)
+   while !isempty(intersect(unvisited, end_nodes))
+      node_min = argmin(n->distances[n], unvisited)
+      dist_min = distances[node_min]
+      if dist_min == Inf
+         break
+      end
+      for (node_next, score) in [(forward(node_min), dist_min + 1),
+                                 (left(node_min), dist_min + 1000),
+                                 (right(node_min), dist_min + 1000)]
+         if haskey(distances, node_next)
+            if score <= distances[node_next]
+               if score < distances[node_next]
+                  predecessors[node_next] = []
+                  distances[node_next] = score
+               end
+               push!(predecessors[node_next], node_min)
+            end
+         end
+      end
+      delete!(unvisited, node_min)
+   end
+
+   winner_nodes::Set{Node} = find_paths(predecessors, end_nodes)
+   winner_cells::Set{CartesianIndex{2}} = Set()
+   for node in winner_nodes
+       push!(winner_cells, xypos(node))
+   end
+   length(winner_cells)
+end
+
+lines = readlines("../../data/advent2024/test16b.txt")
 
 grid = Grid(lines, 0)
 println(part1(lines))
+println(part2(lines))
