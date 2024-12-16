@@ -52,6 +52,15 @@ function find_paths(tree::Dict{Node,Vector{Node}}, nodes::Vector{Node})
    paths
 end
 
+function display_paths(grid::Grid, paths::Set{CartesianIndex{2}})
+   for (y, line) in enumerate(grid.lines)
+      for (x, c) in enumerate(line)
+         print(CartesianIndex(x,y) in paths ? 'O' : c)
+      end
+      println()
+   end
+end
+
 function part1(lines)
    grid = Grid(lines, 0)
    xy_start = findfirst(c->c=='S', grid)
@@ -115,17 +124,19 @@ function part2(lines)
       end
       delete!(unvisited, node_min)
    end
-
-   winner_nodes::Set{Node} = find_paths(predecessors, end_nodes)
+   best_score = minimum(distances[n] for n in end_nodes)
+   win_end_nodes = filter(n -> distances[n] == best_score, end_nodes)
+   winner_nodes::Set{Node} = find_paths(predecessors, win_end_nodes)
    winner_cells::Set{CartesianIndex{2}} = Set()
    for node in winner_nodes
        push!(winner_cells, xypos(node))
    end
+   # display_paths(grid, winner_cells)
    length(winner_cells)
 end
 
-lines = readlines("../../data/advent2024/test16b.txt")
+lines = readlines("../../data/advent2024/day16.txt")
 
-grid = Grid(lines, 0)
+println("slow ... takes a minute or two")
 println(part1(lines))
 println(part2(lines))
