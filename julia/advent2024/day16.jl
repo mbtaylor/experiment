@@ -45,10 +45,12 @@ function part1(lines)
    # Dijskstra's algorithm.  Thanks wikipedia!
    nodes = [Node(p[1], p[2], idir) for idir in 1:4,
                                    p in positions(grid) if grid[p] != '#']
+   # A 3d array would be faster
    distances::Dict{Node,Float64} = Dict(n => Inf for n in nodes)
    distances[Node(xy_start[1], xy_start[2], 1)] = 0
    unvisited = Set(nodes)
-   while !isempty(unvisited)
+   end_nodes = [Node(xy_end[1], xy_end[2], idir) for idir in 1:4]
+   while !isempty(intersect(unvisited, end_nodes))
       node_min = argmin(n->distances[n], unvisited)
       dist_min = distances[node_min]
       if dist_min == Inf
@@ -64,7 +66,7 @@ function part1(lines)
       distances[node_right] = min(distances[node_right], dist_min + 1000)
       delete!(unvisited, node_min)
    end
-   Int64(minimum(distances[Node(xy_end[1], xy_end[2], idir)] for idir in 1:4))
+   Int64(minimum(distances[n] for n in end_nodes))
 end
 
 lines = readlines("../../data/advent2024/day16.txt")
