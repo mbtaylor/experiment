@@ -5,17 +5,17 @@ Base.@kwdef mutable struct Machine
    C::Int64
    program::Vector{UInt8}
    pointer::Int64
-   output::Vector{UInt8}
+   output::Vector{Int64}
 end
 
 function combo(m::Machine, operand::UInt8)
    if operand < 4
       operand
-   else if operand == 5
+   elseif operand == 4
       m.A
-   else if operand == 6
+   elseif operand == 5
       m.B
-   else if operand == 7
+   elseif operand == 6
       m.C
    else
       nothing
@@ -23,7 +23,7 @@ function combo(m::Machine, operand::UInt8)
 end
 
 function adv(m::Machine, operand::UInt8)
-   m.A = m.A << combo(m, operand)
+   m.A = m.A >> combo(m, operand)
 end
 
 function bxl(m::Machine, operand::UInt8)
@@ -45,15 +45,15 @@ function bxc(m::Machine, operand::UInt8)
 end
 
 function out(m::Machine, operand::UInt8)
-   push!(m.output, combo(m, operand))
+   push!(m.output, combo(m, operand) & 0x7)
 end
 
 function bdv(m::Machine, operand::UInt8)
-   m.B = m.A << combo(m, operand)
+   m.B = m.A >> combo(m, operand)
 end
 
 function cdv(m::Machine, operand::UInt8)
-   m.C = m.A << combo(m, operand)
+   m.C = m.A >> combo(m, operand)
 end
 
 opcodes = [adv, bxl, bst, jnz, bxc, out, bdv, cdv]
@@ -76,15 +76,21 @@ function read_machine(lines)
    Machine(; atts...)
 end
 
-function run_machine(machine)
+function run_machine(m::Machine)
    while m.pointer < length(m.program)
-      (instruction, operand) = (m.program[m.pointer], m.program[m.pointer+1])
+      (instruction, operand) = (m.program[m.pointer+1], m.program[m.pointer+2])
       m.pointer += 2
-      opcodes[instruction-1](m, operand)
+      opcodes[instruction+1](m, operand)
    end
 end
 
-lines = readlines("../../data/advent2024/test17.txt")
+function part1(lines)
+   machine = read_machine(lines)
+   run_machine(machine)
+   join(machine.output, ",")
+end
 
-println(read_machine(lines))
+lines = readlines("../../data/advent2024/day17.txt")
+
+println(part1(lines))
 
