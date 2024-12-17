@@ -5,7 +5,11 @@ Base.@kwdef mutable struct Machine
    C::Int64
    program::Vector{UInt8}
    pointer::Int64
-   output::Vector{Int64}
+   output::Vector{UInt8}
+end
+
+function Base.copy(m::Machine)
+   Machine(m.A, m.B, m.C, copy(m.program), m.pointer, copy(m.output))
 end
 
 function combo(m::Machine, operand::UInt8)
