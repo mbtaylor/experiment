@@ -88,13 +88,62 @@ function run_machine(m::Machine)
    end
 end
 
+function test_machine(m::Machine)
+   while m.pointer < length(m.program)
+      (instruction, operand) = (m.program[m.pointer+1], m.program[m.pointer+2])
+      m.pointer += 2
+      opcodes[instruction+1](m, operand)
+      nout = length(m.output)
+      if nout > 0 && m.output[nout] != m.program[nout]
+         return nout - 1
+      end
+   end
+   return length(m.program)
+end
+
 function part1(lines)
    machine = read_machine(lines)
    run_machine(machine)
    join(machine.output, ",")
 end
 
+function part2_bruteforce(lines)
+   m0 = read_machine(lines)
+   m = copy(m0)
+   nprog = length(m.program)
+   for a in 8^(nprog-1):8^nprog
+      m = copy(m0)
+      m.A = a
+      n = test_machine(m)
+      if n >= 8
+         println(n, "\t", string(a, base=16))
+      end
+      if n == nprog
+         return a
+      end
+      a += 1
+   end
+end
+
+function part2(lines)
+   m0 = read_machine(lines)
+end
+
 lines = readlines("../../data/advent2024/day17.txt")
 
 println(part1(lines))
+
+m = read_machine(lines)
+println(m)
+
+p2 = part2_bruteforce(lines)
+println(p2)
+
+# run_machine(m)
+# println(m)
+
+# The result is between 8^15 and 8^16 (I think)
+# You could maybe do it by identifying the pattern for output byte 1
+# (hopefully offset and frequency), then within those results
+# identify the pattern for byte 2, etc.
 
