@@ -1,29 +1,33 @@
 
 const XY = CartesianIndex{2}
 
-struct Grid <: AbstractMatrix{Char}
-   matrix::Matrix{Char}
+# Zero-based square matrix with out-of-bounds access yielding a supplied value
+struct ZMatrix{T} <: AbstractMatrix{T}
+   matrix::Matrix{T}
    dim::Int64
+   blank::T
 end
-Base.size(g::Grid) = Base.size(g.matrix)
-Base.getindex(g::Grid, i::Int, j::Int) = begin
-   i >= 0 && i < g.dim && j >= 0 && j < g.dim ? g.matrix[i+1, j+1] : ' '
+Base.size(m::ZMatrix) = Base.size(m.matrix)
+Base.getindex(m::ZMatrix, i::Int, j::Int) = begin
+   i >= 0 && i < m.dim && j >= 0 && j < m.dim ? m.matrix[i+1, j+1] : m.blank
 end
-Base.setindex!(g::Grid, value::Char, i::Int, j::Int) = begin
-   setindex!(g.matrix, value, i+1, j+1)
+Base.setindex!(m::ZMatrix, value, i::Int, j::Int) = begin
+   setindex!(m.matrix, value, i+1, j+1)
 end
-Grid(dim) = Grid(['.' for i in 1:dim, j in 1:dim], dim)
-display(g::Grid) = begin
-   for y in 0:g.dim-1
-      for x in 0:g.dim-1
-         print(g[x,y])
+ZMatrix(dim, el, blank) = begin
+   ZMatrix([el for i in 1:dim, j in 1:dim], dim, blank)
+end
+display(m::ZMatrix{Char}) = begin
+   for y in 0:m.dim-1
+      for x in 0:m.dim-1
+         print(m[x,y])
       end
       println()
    end
 end
 
 function create_grid(dim)
-   grid::Grid = Grid(dim)
+   grid::ZMatrix{Char} = ZMatrix(dim, '.', ' ')
 end
 
 function positions(lines)
@@ -35,7 +39,7 @@ function positions(lines)
    xys
 end
 
-function fill(grid::Grid, xys::Vector{XY})
+function fill(grid::ZMatrix{Char}, xys::Vector{XY})
    for xy in xys
       grid[xy] = '#'
    end
@@ -48,4 +52,3 @@ xys = positions(lines)
 fill(grid, xys[1:12])
 display(grid)
 
-println("cell: ", grid[3,4], " - ", grid.matrix[3,4])
