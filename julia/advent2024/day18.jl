@@ -14,7 +14,7 @@ end
 Base.setindex!(m::ZMatrix, value, i::Int, j::Int) = begin
    setindex!(m.matrix, value, i+1, j+1)
 end
-ZMatrix(dim, el, blank) = begin
+ZMatrix(dim::Int64, el, blank) = begin
    ZMatrix([el for i in 1:dim, j in 1:dim], dim, blank)
 end
 display(m::ZMatrix{Char}) = begin
@@ -25,6 +25,7 @@ display(m::ZMatrix{Char}) = begin
       println()
    end
 end
+positions(m::ZMatrix) = (XY(i, j) for i in 0:m.dim-1, j in 0:m.dim-1)
 
 function create_grid(dim)
    grid::ZMatrix{Char} = ZMatrix(dim, '.', ' ')
@@ -45,10 +46,34 @@ function fill(grid::ZMatrix{Char}, xys::Vector{XY})
    end
 end
 
+function part1(lines, dim)
+ println(typeof(lines), "\t", typeof(dim), "\t", dim)
+   grid::ZMatrix{Char} = create_grid(dim)
+   xys = positions(lines)
+   fill(grid, xys[1:1024])
+   distances::ZMatrix{Float64} = ZMatrix(dim, Inf, NaN)
+   distances[0,0] = 0
+   unvisited::Set{XY} = Set(positions(grid))
+   end_pos = XY(dim-1, dim-1)
+   while end_pos ∈ unvisited
+      pos_min = argmin(xy -> distances[xy], unvisited)
+      dist_min = distances[pos_min]
+      if dist_min == Inf
+         break
+      end
+      for step in [XY(1,0), XY(0,1), XY(-1,0), XY(0,-1)]
+         pos = pos_min + step
+         if grid[pos] == '.'
+            distances[pos] = dist_min + 1
+         end
+         delete!(unvisited, pos_min)
+      end
+   end
+   Int64(distances[end_pos])
+end
 
-(lines, dim) = (readlines("../../data/advent2024/test18.txt"), 7)
-grid = create_grid(dim)
-xys = positions(lines)
-fill(grid, xys[1:12])
-display(grid)
+
+(lines, dim) = (readlines("../../data/advent2024/day18.txt"), 71)
+
+println(part1(lines, dim))
 
