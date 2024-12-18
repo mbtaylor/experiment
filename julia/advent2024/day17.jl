@@ -125,25 +125,46 @@ function part2_bruteforce(lines)
    end
 end
 
-function part2(lines)
+function part2_bad2(lines)
    m0 = read_machine(lines)
+   nprog = length(m.program)
+   tails = [
+      0x88f01, 0x80f01, 0x88f09, 0x80f09, 0x8899a, 0x8099a, 0x8699a, 0x8f309, 0x8089b,
+      0x98f01, 0x90f01, 0x98f09, 0x90f09, 0x9899a, 0x9099a, 0x9699a, 0x9f309, 0x9089b,
+   ]
+
+   Threads.@threads for tail in tails
+   # for tail in tails
+      for head in ((8^(nprog-1))>>20):((8^nprog)>>20)
+         a = head << 20 | tail
+         m = copy(m0)
+         m.A = a
+         n = test_machine(m)
+         if n >= 14
+            println(n, "\t", string(a, base=16))
+         end
+         if n == nprog
+            println("Yes: " + a)
+            return a
+         end
+      end
+   end
 end
 
 lines = readlines("../../data/advent2024/day17.txt")
 
 println(part1(lines))
 
+# Terrible solution, but it got there in a few hours.
+part2_bad2(lines)
+
+# This is a right answer; but not the lowest
+# 0x632713b8f309
+# m.A = 109019485762313
+# This one's smaller
+# 0x63271329089b
+m.A = 109019476330651
 m = read_machine(lines)
+run_machine(m)
 println(m)
-
-p2 = part2_bruteforce(lines)
-println(p2)
-
-# run_machine(m)
-# println(m)
-
-# The result is between 8^15 and 8^16 (I think)
-# You could maybe do it by identifying the pattern for output byte 1
-# (hopefully offset and frequency), then within those results
-# identify the pattern for byte 2, etc.
 
