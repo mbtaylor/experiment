@@ -31,7 +31,7 @@ function create_grid(dim)
    grid::ZMatrix{Char} = ZMatrix(dim, '.', ' ')
 end
 
-function positions(lines)
+function read_positions(lines)
    xys::Vector{XY} = []
    for line in lines
       xy = split(line, ",") .|> s->parse(Int64, s)
@@ -46,11 +46,9 @@ function fill(grid::ZMatrix{Char}, xys::Vector{XY})
    end
 end
 
-function part1(lines, dim)
- println(typeof(lines), "\t", typeof(dim), "\t", dim)
+function escape_dist(dim, blocks)
    grid::ZMatrix{Char} = create_grid(dim)
-   xys = positions(lines)
-   fill(grid, xys[1:1024])
+   fill(grid, blocks)
    distances::ZMatrix{Float64} = ZMatrix(dim, Inf, NaN)
    distances[0,0] = 0
    unvisited::Set{XY} = Set(positions(grid))
@@ -59,7 +57,7 @@ function part1(lines, dim)
       pos_min = argmin(xy -> distances[xy], unvisited)
       dist_min = distances[pos_min]
       if dist_min == Inf
-         break
+         break;
       end
       for step in [XY(1,0), XY(0,1), XY(-1,0), XY(0,-1)]
          pos = pos_min + step
@@ -69,11 +67,33 @@ function part1(lines, dim)
          delete!(unvisited, pos_min)
       end
    end
-   Int64(distances[end_pos])
+   distances[end_pos]
+end
+
+function part1(lines, dim)
+   Int64(escape_dist(dim, read_positions(lines)[1:1024]))
+end
+
+function part2(lines, dim)
+   blocks = read_positions(lines)
+   lo = 1
+   hi = length(blocks)
+   mid = -1
+   while hi - lo > 1
+      mid = (hi + lo) ÷ 2
+      if escape_dist(dim, blocks[1:mid]) == Inf
+         hi = mid
+      else
+         lo = mid
+      end
+   end
+   blocker = blocks[mid]
+   "$(blocker[1]),$(blocker[2])"
 end
 
 
 (lines, dim) = (readlines("../../data/advent2024/day18.txt"), 71)
 
 println(part1(lines, dim))
+println(part2(lines, dim))
 
