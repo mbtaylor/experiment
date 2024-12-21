@@ -13,6 +13,16 @@ Base.getindex(g::Grid, i::Int, j::Int) = begin
 end
 positions(g::Grid) = (CartesianIndex(i, j) for i in 1:g.w, j in 1:g.h)
 
+struct Cheat
+   offset::XY
+   nstep::Int
+end
+
+function list_cheats(max)
+   [Cheat(XY(i, j), abs(i)+abs(j)) for i in -max:max, j in -max:max
+                                   if abs(i)+abs(j) <= max]
+end
+
 function calc_distances(grid::Grid)
    start_pos = findfirst(c->c=='S', grid)
    end_pos = findfirst(c->c=='E', grid)
@@ -54,6 +64,28 @@ function part1(lines)
          end
       end
    end
+   length(filter(d->d>=100, diffs))
+end
+
+function part2(lines)
+   grid = Grid(lines)
+   dists = calc_distances(grid)
+   cheats = list_cheats(20)
+   diffs::Vector{Int} = Vector()
+   for p0 in positions(grid)
+      if is_track(grid[p0])
+         for cheat in cheats
+            p1 = p0 + cheat.offset
+            if is_track(grid[p1])
+               diff = dists[p1] - dists[p0] - cheat.nstep
+               if diff > 0
+                  push!(diffs, diff)
+               end
+            end
+         end
+      end
+   end
+   # sort([(i, count(==(i), diffs)) for i in unique(diffs)], by=x->x[1])
    length(filter(d->d >= 100, diffs))
 end
 
@@ -62,6 +94,8 @@ lines = readlines("../../data/advent2024/day20.txt")
 grid = Grid(lines)
 
 # display(map(d->d==Inf ? -1 : Int(d), transpose(calc_distances(grid))))
+
 println(part1(lines))
+println(part2(lines))
 
 
