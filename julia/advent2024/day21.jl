@@ -88,16 +88,25 @@ function code_sequence(pad::Matrix{Char}, pos0::Vector{Int}, code::String)
    end
 end
 
-function part1(lines)
+function chain_of_robots(lines, ndpad)
    tot = 0
    for line in lines
       num = parse(Int, match(r"([0-9]+)", line).captures[1])
-      seq1 = code_sequence(npad, findkey('A', npad), line)
-      seq2 = code_sequence(dpad, findkey('A', dpad), seq1)
-      seq3 = code_sequence(dpad, findkey('A', dpad), seq2)
-      tot += length(seq3) * num
+      seq = code_sequence(npad, findkey('A', npad), line)
+      for i in 1:ndpad
+         seq = code_sequence(dpad, findkey('A', dpad), seq)
+      end
+      tot += length(seq) * num
    end
    tot
+end
+
+function part1(lines)
+   chain_of_robots(lines, 2)
+end
+
+function part2(lines)
+   chain_of_robots(lines, 25)
 end
 
 lines = readlines("../../data/advent2024/day21.txt")
