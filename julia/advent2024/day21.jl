@@ -71,18 +71,24 @@ function butt_sequence(pad::Matrix{Char}, pos::Vector{Int}, c::Char,
    join(seq)
 end
 
-function code_sequence(pad::Matrix{Char}, pos0::Vector{Int}, code::String)
+function code_sequence(pad::Matrix{Char}, pos0::Vector{Int}, code::String,
+                       memo::Dict{Tuple{Vector{Int},String},String})
    if length(code) > 0
-      c1 = code[1]
-      seqs = []
-      for xf in (true, false)
-         pos1 = copy(pos0)
-         bs = butt_sequence(pad, pos1, c1, xf)
-         if bs != nothing
-            push!(seqs, bs * code_sequence(pad, pos1, code[2:end]))
+      key = (copy(pos0), code)
+      if !haskey(memo, key)
+         c1 = code[1]
+         seqs = []
+         for xf in (true, false)
+            pos1 = copy(pos0)
+            bs = butt_sequence(pad, pos1, c1, xf)
+            if bs != nothing
+               push!(seqs, bs * code_sequence(pad, pos1, code[2:end], memo))
+            end
          end
+         seq = argmin(length, seqs)
+         memo[key] = seq
       end
-      return argmin(length, seqs)
+      return memo[key]
    else
       return ""
    end
@@ -90,16 +96,19 @@ end
 
 function chain_of_robots(lines, ndpad)
    tot = 0
+   nmemo::Dict{Tuple{Vector{Int},String},String} = Dict()
+   dmemo::Dict{Tuple{Vector{Int},String},String} = Dict()
    for line in lines
       num = parse(Int, match(r"([0-9]+)", line).captures[1])
-      seq = code_sequence(npad, findkey('A', npad), line)
+      seq = code_sequence(npad, findkey('A', npad), line, nmemo)
       for i in 1:ndpad
-         seq = code_sequence(dpad, findkey('A', dpad), seq)
+         seq = code_sequence(dpad, findkey('A', dpad), seq, dmemo)
       end
       tot += length(seq) * num
    end
    tot
 end
+
 
 function part1(lines)
    chain_of_robots(lines, 2)
@@ -112,4 +121,5 @@ end
 lines = readlines("../../data/advent2024/day21.txt")
 
 println(part1(lines))
+println(part2(lines))
 
