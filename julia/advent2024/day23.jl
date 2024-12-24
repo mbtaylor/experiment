@@ -1,10 +1,8 @@
 
-
 const Pair = NTuple{2,String}
 
 function read_pair(line)
-   m = match(r"([a-z][a-z])-([a-z][a-z])", line)
-   Tuple(sort(m.captures))
+   match(r"([a-z][a-z])-([a-z][a-z])", line).captures .|> String |> sort |> Tuple
 end
 
 function read_pairs(lines)
@@ -29,13 +27,59 @@ function find_triples(pairs)
    triples
 end
 
+function in_party(pairs::Set{NTuple{2,String}}, party::Set{String},
+                  node::String)
+   for p in party
+      if Tuple(sort([p, node])) ∉ pairs
+         return false
+      end
+   end
+   true
+end
+
+function extend_party(pairs::Set{NTuple{2,String}}, nodes::Vector{String},
+                      party::Set{String})
+   iextra = findfirst(n->in_party(pairs, party, n), nodes)
+   if iextra == nothing
+      party
+   else
+      party1 = copy(party)
+      push!(party1, nodes[iextra])
+      extend_party(pairs, nodes, party1)
+   end
+end
+
+function find_parties(pairs)
+   nodes::Vector{String} = []
+   for p in pairs
+      push!(nodes, p[1])
+      push!(nodes, p[2])
+   end
+   parties::Set{Set{String}} = Set()
+   for p in pairs
+      party = extend_party(pairs, nodes, Set(p))
+      push!(parties, party)
+   end
+   parties
+end
+
+
 function part1(lines)
    triples = lines |> read_pairs |> find_triples
    length(filter(t -> t[1][1] == 't' || t[2][1] == 't' || t[3][1] == 't',
                  triples))
 end
 
+function part2(lines)
+   parties = lines |> read_pairs |> Set |> find_parties |> collect
+   maxparty = parties[findmax(length, parties)[2]]
+   join(sort(collect(maxparty)), ",")
+end
+
 lines = readlines("../../data/advent2024/day23.txt")
 
 println(part1(lines))
+println(part2(lines))
+
+# display(lines |> read_pairs |> Set |> find_parties)
 
