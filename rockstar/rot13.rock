@@ -1,0 +1,42 @@
+unicode takes letter
+l is 65
+while l < 91
+burn l into s
+if s is letter give back l
+l = l + 1
+yeah
+l is 97
+while l < 123
+burn l into s
+if s is letter give back l
+l = l + 1
+yeah
+give back nothing
+
+let u be unicode taking "S"
+shout u
+let u be unicode taking "+"
+shout u
+
+Listen to the silence
+rock result
+For ever in the silence
+  whisper ever
+  let u be unicode taking ever
+  if u is nothing
+    rock result with ever
+  otherwise
+    let isupper = u < 96
+    let u be u + 13
+    if u > 122 or isupper and u > 90
+      let u be u - 26
+    yeah
+    cast u into v
+    rock result with v
+  yeah
+yeah
+
+
+    (if it's more than daemons deserve, if it's more than a bootlegged challenge)
+gather result into output
+shout "hey " with output
