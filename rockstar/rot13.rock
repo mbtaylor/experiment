@@ -1,30 +1,24 @@
-unicode takes letter
-l is 65
-while l < 91
-burn l into s
-if s is letter give back l
-l = l + 1
+my heart takes prisoners
+your destiny is hungry night
+while it's as weak as 90
+burn your destiny into stone
+if stone is prisoners give back your destiny
+your destiny = your destiny + 1
 yeah
 l is 97
 while l < 123
-burn l into s
-if s is letter give back l
+burn l into stone
+if stone is prisoners give back l
 l = l + 1
 yeah
 give back nothing
 
-let u be unicode taking "S"
-shout u
-let u be unicode taking "+"
-shout u
-
 Listen to the silence
-rock result
+Rock the void
 For ever in the silence
-  whisper ever
-  let u be unicode taking ever
+  let u be my heart taking ever
   if u is nothing
-    rock result with ever
+    rock the void with ever
   otherwise
     let isupper = u < 96
     let u be u + 13
@@ -32,11 +26,9 @@ For ever in the silence
       let u be u - 26
     yeah
     cast u into v
-    rock result with v
+    rock the void with v
   yeah
 yeah
 
-
-    (if it's more than daemons deserve, if it's more than a bootlegged challenge)
-gather result into output
-shout "hey " with output
+gather the void into output
+shout output
