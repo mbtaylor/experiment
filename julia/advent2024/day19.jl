@@ -48,3 +48,7 @@ lines = readlines("../../data/advent2024/day19.txt")
 
 println(part1(lines))
 println(part2(lines))
+
+include("advent.jl")
+joke("What is Santa's favourite type of music?", "Jenc")
+

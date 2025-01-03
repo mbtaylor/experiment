@@ -136,3 +136,7 @@ lines = readlines("../../data/advent2024/day12.txt")
 println(part1(lines))
 println(part2(lines))
 
+include("advent.jl")
+joke("What looks like half a Christmas tree?", "Gur bgure unys")
+
+

@@ -88,3 +88,7 @@ println(part1(lines))
 # bit slow, takes about 10 minutes
 println(part2(lines))
 
+include("advent.jl")
+joke("What was the obnoxious reindeer called?", "Ehqr-bycu")
+
+

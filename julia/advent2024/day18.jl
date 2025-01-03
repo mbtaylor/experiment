@@ -97,3 +97,7 @@ end
 println(part1(lines, dim))
 println(part2(lines, dim))
 
+include("advent.jl")
+joke("Why did nobody bid for Donner and Blitzen on eBay?",
+     "Gurl jrer gjb qrre")
+

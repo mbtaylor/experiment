@@ -197,6 +197,10 @@ end
 
 println(part2(lines))
 
+include("advent.jl")
+joke("Why did Rudolph have to attend summer school?",
+     "Orpnhfr ur jrag qbja va uvfgbel")
+
 
 # Looks like switches are:
 #  95,31 (bit 10)

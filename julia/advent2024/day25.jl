@@ -44,3 +44,8 @@ lines = readlines("../../data/advent2024/day25.txt")
 
 println(part1(lines))
 
+include("advent.jl")
+joke("Why are Christmas trees so fond of the past?",
+     "Orpnhfr gur cerfrag'f orarngu gurz")
+
+

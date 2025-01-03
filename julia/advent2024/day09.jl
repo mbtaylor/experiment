@@ -90,3 +90,8 @@ line = readline("../../data/advent2024/day09.txt")
 println(part1(line))
 println(part2(line))
 
+include("advent.jl")
+joke("How many letters are there in the Christmas alphabet?",
+     "Gjragl svir - gurer'f ab Y")
+
+

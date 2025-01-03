@@ -70,3 +70,8 @@ labels = to_labels(line)
 println(part1(line))
 println(part2(line))
 
+include("advent.jl")
+joke("Why are Christmas trees rubbish at knitting?",
+     "Gurl nyjnlf qebc gurve arrqyrf!")
+
+

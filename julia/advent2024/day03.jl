@@ -33,3 +33,7 @@ lines = readlines("../../data/advent2024/day03.txt")
 
 println(part1(lines))
 println(part2(lines))
+
+include("advent.jl")
+joke("Where does Santa stay when he’s on holiday?", "Va n ub-ub-ubgry")
+

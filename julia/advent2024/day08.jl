@@ -70,4 +70,8 @@ lines = readlines("../../data/advent2024/day08.txt")
 println(part1(lines))
 println(part2(lines))
 
+include("advent.jl")
+joke("Why is it getting harder to buy Advent calendars?",
+     "Gurve qnlf ner ahzorerq")
+
 

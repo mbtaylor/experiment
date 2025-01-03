@@ -75,3 +75,7 @@ sums = collect(map(l -> Sum(l), lines))
 println(part1(sums))
 println(part2(sums))
 
+include("advent.jl")
+joke("What did Adam say on the day before Christmas?",
+     "Vg'f Puevfgznf, Rir")
+

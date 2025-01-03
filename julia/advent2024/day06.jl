@@ -118,4 +118,8 @@ lines = readlines("../../data/advent2024/day06.txt")
 println(part1(lines))
 println(part2_multithreaded(lines))
 
+include("advent.jl")
+joke("Daughter: Can I have a pony for Christmas?",
+     "Qnq: Gur bira’f bayl ovt rabhtu sbe n ghexrl!")
+
 

@@ -81,5 +81,8 @@ lines = readlines("../../data/advent2024/day23.txt")
 println(part1(lines))
 println(part2(lines))
 
-# display(lines |> read_pairs |> Set |> find_parties)
+include("advent.jl")
+joke("How did Scrooge win the football game?",
+     "Gur tubfg bs Puevfgznf cnffrq")
+
 

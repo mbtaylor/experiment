@@ -140,3 +140,7 @@ lines = readlines("../../data/advent2024/day16.txt")
 println("slow ... takes a minute or two")
 println(part1(lines))
 println(part2(lines))
+
+include("advent.jl")
+joke("Knock, knock! Who's there? Mary. Mary who?", "Znel Puevfgznf")
+

@@ -168,3 +168,7 @@ m = read_machine(lines)
 run_machine(m)
 println(m)
 
+include("advent.jl")
+joke("Knock, knock! Who's there? Abbie. Abbie who?", "Noovr Arj Lrne")
+
+

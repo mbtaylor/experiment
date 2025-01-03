@@ -163,3 +163,9 @@ lines = readlines("../../data/advent2024/day15.txt")
 println(part1(lines))
 println(part2(lines))
 
+include("advent.jl")
+joke("Why was the snowman rummaging in a bag of carrots?",
+     "Ur jnf cvpxvat uvf abfr")
+
+
+

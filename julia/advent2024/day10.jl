@@ -66,3 +66,8 @@ lines = readlines("../../data/advent2024/day10.txt")
 println(part1(lines))
 println(part2(lines))
 
+include("advent.jl")
+joke("What happened to the man who stole an Advent calendar?",
+     "Ur tbg 24 qnlf")
+
+

@@ -22,5 +22,7 @@ lines = readlines("../../data/advent2024/day01.txt")
 println(part1(lines))
 println(part2(lines))
 
+include("advent.jl")
+joke("What's orange and could beat you in a fight?", "N fngfhzn jerfgyre")
 
 

@@ -98,4 +98,9 @@ grid = Grid(lines)
 println(part1(lines))
 println(part2(lines))
 
+include("advent.jl")
+joke("How much does Santa have to pay to park his sleigh?",
+     "Abguvat, vg'f ba gur ubhfr")
+
+
 
