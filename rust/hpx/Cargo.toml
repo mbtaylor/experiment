@@ -1,0 +1,7 @@
+[package]
+name = "hpx"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cdshealpix = { git = "https://github.com/cds-astro/cds-healpix-rust" }
