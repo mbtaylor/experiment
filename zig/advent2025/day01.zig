@@ -4,10 +4,13 @@ const ArrayList = std.ArrayList;
 const parseInt = std.fmt.parseInt;
 const MAXBUF: usize = 100_000;
 
+const filename = "data/input01.txt";
+
 pub fn main() !void {
     var gpa = std.heap.DebugAllocator(.{}){};
     const allocator = gpa.allocator();
-    const filename = "data/input01.txt";
+    defer _ = gpa.detectLeaks();
+
     const data_lines = try readLines(allocator, filename);
     defer data_lines.deinit();
     const lines = data_lines.line_list;
@@ -59,8 +62,8 @@ fn part2(lines: [][]const u8) !u32 {
     return n0;
 }
 
-fn readLines(allocator: Allocator, filename: []const u8) !DataLines {
-    const content = try std.fs.cwd().readFileAlloc(allocator, filename, MAXBUF);
+fn readLines(allocator: Allocator, fname: []const u8) !DataLines {
+    const content = try std.fs.cwd().readFileAlloc(allocator, fname, MAXBUF);
     var line_list: ArrayList([]const u8) = .empty;
     var splitIt = std.mem.splitScalar(u8, content, '\n');
     while (splitIt.next()) |line| {
