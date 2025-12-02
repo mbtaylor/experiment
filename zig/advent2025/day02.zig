@@ -3,8 +3,8 @@ const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const MAXBUF: usize = 100_000;
 
-// const filename = "data/input02.txt";
-const filename = "test02.txt";
+const filename = "data/input02.txt";
+// const filename = "test02.txt";
 
 pub fn main() !void {
     var gpa = std.heap.DebugAllocator(.{}){};
@@ -23,16 +23,16 @@ pub fn main() !void {
 fn part1(ranges: []const Range) !u64 {
     var ninv: u64 = 0;
     for (ranges) |range| {
-        ninv += try countInvalids(range);
+        ninv += try addInvalids(range);
     }
     return ninv;
 }
 
-fn countInvalids(range: Range) !u64 {
+fn addInvalids(range: Range) !u64 {
     const ndlo = range.lotxt.len;
     const ndhi = range.hitxt.len;
     if (ndlo == ndhi) {
-        return try countEqualLengthInvalids(range);
+        return try addEqualLengthInvalids(range);
     }
     else if (ndhi - ndlo > 1) {
         return error.UhOh;
@@ -42,10 +42,10 @@ fn countInvalids(range: Range) !u64 {
         const factor: u64 = std.math.pow(u64, 10, nd2);
         const lopref = try std.fmt.parseInt(u64, range.lotxt[0..nd2], 10);
         const lo: u64 = lopref * factor;
-        const hi: u64 = (lopref + 1) * factor - 1;
+        const hi: u64 = factor * factor - 1;
         var buf: [64]u8 = undefined;
         const rword = try std.fmt.bufPrint(&buf, "{d}-{d}", .{lo, hi});
-        return try countEqualLengthInvalids(try Range.init(rword));
+        return try addEqualLengthInvalids(try Range.init(rword));
     }
     else if (ndhi % 2 == 0) {
         const nd2 = ndhi / 2;
@@ -55,14 +55,14 @@ fn countInvalids(range: Range) !u64 {
         const hi: u64 = range.hival;
         var buf: [64]u8 = undefined;
         const rword = try std.fmt.bufPrint(&buf, "{d}-{d}", .{lo, hi});
-        return try countEqualLengthInvalids(try Range.init(rword));
+        return try addEqualLengthInvalids(try Range.init(rword));
     }
     else {
         unreachable;
     }
 }
 
-fn countEqualLengthInvalids(range: Range) !u64 {
+fn addEqualLengthInvalids(range: Range) !u64 {
     const ndlo = range.lotxt.len;
     const ndhi = range.hitxt.len;
     if (ndlo != ndhi) {
@@ -73,17 +73,19 @@ fn countEqualLengthInvalids(range: Range) !u64 {
         const factor: u64 = std.math.pow(u64, 10, nd2);
         const lopref = try std.fmt.parseInt(u64, range.lotxt[0..nd2], 10);
         const hipref = try std.fmt.parseInt(u64, range.hitxt[0..nd2], 10);
-        var count: u64 = 0;
+        var sum: u64 = 0;
         if (range.inRange(lopref*factor + lopref)) {
-            count += 1;
+            sum += lopref*factor + lopref;
         }
         if (hipref > lopref) {
             if (range.inRange(hipref*factor + hipref)) {
-                count += 1;
+                sum += hipref*factor + hipref;
             }
-            count += hipref - lopref - 1;
+            for (lopref+1..hipref) |p| {
+                sum += p*factor + p;
+            }
         }
-        return count;
+        return sum;
     }
     else {
         return 0;
