@@ -16,80 +16,103 @@ pub fn main() !void {
     const ranges = try readRanges(allocator, data_lines.line_list[0]);
     defer allocator.free(ranges);
 
-    const p1 = try part1(ranges);
+    const p1 = try part1(allocator, ranges);
     std.debug.print("Part 1: {d}\n", .{p1});
+    const p2 = try part2(allocator, ranges);
+    std.debug.print("Part 2: {d}\n", .{p2});
 }
 
-fn part1(ranges: []const Range) !u64 {
-    var ninv: u64 = 0;
+fn part1(allocator: Allocator, ranges: []const Range) !u64 {
+    var map = std.AutoHashMap(u64, void).init(allocator);
+    defer map.deinit();
     for (ranges) |range| {
-        ninv += try addInvalids(range);
+        try addInvalids(range, 2, &map);
     }
-    return ninv;
+    return sum_keys(map);
 }
 
-fn addInvalids(range: Range) !u64 {
+fn part2(allocator: Allocator, ranges: []const Range) !u64 {
+    var map = std.AutoHashMap(u64, void).init(allocator);
+    defer map.deinit();
+    for (ranges) |range| {
+        for (2..12) |rc| {
+            const repeat_count: u8 = @intCast(rc);
+            try addInvalids(range, repeat_count, &map);
+        }
+    }
+    return sum_keys(map);
+}
+
+fn addInvalids(range: Range, repeat_count: u8, map: *std.AutoHashMap(u64, void)) !void {
     const ndlo = range.lotxt.len;
     const ndhi = range.hitxt.len;
     if (ndlo == ndhi) {
-        return try addEqualLengthInvalids(range);
+        try addEqualLengthInvalids(range, repeat_count, map);
+        return;
     }
     else if (ndhi - ndlo > 1) {
         return error.UhOh;
     }
-    else if (ndlo % 2 == 0) {
-        const nd2 = ndlo / 2;
-        const factor: u64 = std.math.pow(u64, 10, nd2);
-        const lopref = try std.fmt.parseInt(u64, range.lotxt[0..nd2], 10);
-        const lo: u64 = lopref * factor;
-        const hi: u64 = factor * factor - 1;
+    if (ndlo % repeat_count == 0) {
+        const lo = range.loval;
+        const hi = std.math.pow(u64, 10, range.lotxt.len) - 1;
         var buf: [64]u8 = undefined;
         const rword = try std.fmt.bufPrint(&buf, "{d}-{d}", .{lo, hi});
-        return try addEqualLengthInvalids(try Range.init(rword));
+        try addEqualLengthInvalids(try Range.init(rword), repeat_count, map);
     }
-    else if (ndhi % 2 == 0) {
-        const nd2 = ndhi / 2;
-        const factor: u64 = std.math.pow(u64, 10, nd2);
-        const hipref = try std.fmt.parseInt(u64, range.hitxt[0..nd2], 10);
-        const lo: u64 = hipref * factor;
-        const hi: u64 = range.hival;
+    if (ndhi % repeat_count == 0) {
+        const lo = std.math.pow(u64, 10, range.lotxt.len);
+        const hi = range.hival;
         var buf: [64]u8 = undefined;
         const rword = try std.fmt.bufPrint(&buf, "{d}-{d}", .{lo, hi});
-        return try addEqualLengthInvalids(try Range.init(rword));
-    }
-    else {
-        unreachable;
+        try addEqualLengthInvalids(try Range.init(rword), repeat_count, map);
     }
 }
 
-fn addEqualLengthInvalids(range: Range) !u64 {
+fn addEqualLengthInvalids(range: Range, repeat_count: u8, map: *std.AutoHashMap(u64, void)) !void {
     const ndlo = range.lotxt.len;
     const ndhi = range.hitxt.len;
     if (ndlo != ndhi) {
         return error.UhOh;
     }
-    if (ndlo % 2 == 0) {
-        const nd2 = ndlo / 2;
-        const factor: u64 = std.math.pow(u64, 10, nd2);
-        const lopref = try std.fmt.parseInt(u64, range.lotxt[0..nd2], 10);
-        const hipref = try std.fmt.parseInt(u64, range.hitxt[0..nd2], 10);
-        var sum: u64 = 0;
-        if (range.inRange(lopref*factor + lopref)) {
-            sum += lopref*factor + lopref;
-        }
+    if (ndlo % repeat_count == 0) {
+        const ndn = ndlo / repeat_count;
+        const lopref = try std.fmt.parseInt(u64, range.lotxt[0..ndn], 10);
+        const hipref = try std.fmt.parseInt(u64, range.hitxt[0..ndn], 10);
+        const v1 = repeat(lopref, ndn, repeat_count);
+        if (range.inRange(v1)) {
+            try map.put(v1, {});
+        } 
         if (hipref > lopref) {
-            if (range.inRange(hipref*factor + hipref)) {
-                sum += hipref*factor + hipref;
+            const v2 = repeat(hipref, ndn, repeat_count);
+            if (range.inRange(v2)) {
+                try map.put(v2, {});
             }
             for (lopref+1..hipref) |p| {
-                sum += p*factor + p;
+                const v3 = repeat(p, ndn, repeat_count);
+                try map.put(v3, {});
             }
         }
-        return sum;
     }
-    else {
-        return 0;
+}
+
+fn sum_keys(map: std.AutoHashMap(u64, void)) u64 {
+    var iterator = map.keyIterator();
+    var sum: u64 = 0;
+    while (iterator.next()) |key| {
+        sum += key.*;
     }
+    return sum;
+}
+
+fn repeat(el: u64, n_digit: u64, repeat_count: u8) u64 {
+    var val: u64 = 0;
+    var fact: u64 = 1;
+    for (0..repeat_count) |_| {
+        val = val + el * fact;
+        fact *= std.math.pow(u64, 10, n_digit);
+    }
+    return val;
 }
 
 fn readRanges(allocator: Allocator, line: []const u8) ![]const Range {
