@@ -14,10 +14,6 @@ pub fn main() !void {
     defer data_lines.deinit();
     const ranges = try readRanges(allocator, data_lines.line_list[0]);
     defer allocator.free(ranges);
-
-    std.debug.print("line count: {d}\nrange count: {d}\n",
-                    .{data_lines.line_list.len, ranges.len});
-    std.debug.print("range: {s} - {s}\n", .{ranges[0].lotxt, ranges[0].hitxt});
 }
 
 fn readRanges(allocator: Allocator, line: []const u8) ![]const Range {
@@ -26,7 +22,7 @@ fn readRanges(allocator: Allocator, line: []const u8) ![]const Range {
     var splitIt = std.mem.splitScalar(u8, line, ',');
     var i: usize = 0;
     while (splitIt.next()) |word| {
-        ranges[i] = Range.init(word);
+        ranges[i] = try Range.init(word);
         i += 1;
     }
 //  @assert(i == nr);
@@ -37,8 +33,10 @@ const Range = struct {
     word: []const u8,
     lotxt: []const u8,
     hitxt: []const u8,
+    loval: u64,
+    hival: u64,
 
-    pub fn init(word: []const u8) Range {
+    pub fn init(word: []const u8) !Range {
         var lotxt: []const u8 = undefined;
         var hitxt: []const u8 = undefined;
         for (word, 0..) |c, i| {
@@ -52,6 +50,8 @@ const Range = struct {
             .word = word,
             .lotxt = lotxt,
             .hitxt = hitxt,
+            .loval = try std.fmt.parseInt(u64, lotxt, 10),
+            .hival = try std.fmt.parseInt(u64, hitxt, 10),
         };
     }
 };
