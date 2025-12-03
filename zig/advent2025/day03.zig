@@ -1,6 +1,5 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const ArrayList = std.ArrayList;
 const MAXBUF: usize = 100_000;
 
 const filename = "data/input03.txt";
@@ -14,16 +13,31 @@ pub fn main() !void {
     defer data_lines.deinit();
     const lines = data_lines.line_list;
 
-    const p1 = try part1(lines);
+    const p1 = part1(lines);
     std.debug.print("Part 1: {d}\n", .{p1});
+    const p2 = part2(lines);
+    std.debug.print("Part 2: {d}\n", .{p2});
 }
 
-fn part1(lines: [][]const u8) !u32 {
-    var sum: u32 = 0;
+fn part1(lines: [][]const u8) u64 {
+    return joltage(lines, 2);
+}
+
+fn part2(lines: [][]const u8) u64 {
+    return joltage(lines, 12);
+}
+
+fn joltage(lines: [][]const u8, nbatt: usize) u64 {
+    var sum: u64 = 0;
     for (lines) |line| {
-        const ic0 = find_max_index(line[0..line.len-1]);
-        const ic1 = find_max_index(line[ic0+1..line.len]) + ic0 + 1;
-        const jolt = (line[ic0] - '0') * 10 + (line[ic1] - '0');
+        var jolt: u64 = 0;
+        var ic: usize = 0;
+        for (0..nbatt) |ibatt| {
+            const kbatt = nbatt - ibatt - 1;
+            ic += find_max_index(line[ic..line.len-kbatt]);
+            jolt += std.math.pow(u64, 10, kbatt) * (line[ic] - '0');
+            ic += 1;
+        }
         sum += jolt;
     }
     return sum;
@@ -44,7 +58,7 @@ fn find_max_index(line: []const u8) usize {
 
 fn readLines(allocator: Allocator, fname: []const u8) !DataLines {
     const content = try std.fs.cwd().readFileAlloc(allocator, fname, MAXBUF);
-    var line_list: ArrayList([]const u8) = .empty;
+    var line_list: std.ArrayList([]const u8) = .empty;
     var splitIt = std.mem.splitScalar(u8, content, '\n');
     while (splitIt.next()) |line| {
         try line_list.append(allocator, line);
