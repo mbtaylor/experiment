@@ -2,7 +2,6 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const MAXBUF: usize = 100_000;
-const IntSet = std.AutoHashMap(u64, void);
 
 const filename = "data/input02.txt";
 // const filename = "test02.txt";
@@ -24,31 +23,31 @@ pub fn main() !void {
 }
 
 fn part1(allocator: Allocator, ranges: []const Range) !u64 {
-    var map = IntSet.init(allocator);
-    defer map.deinit();
+    var set = IntSet.init(allocator);
+    defer set.deinit();
     for (ranges) |range| {
-        try addInvalids(range, 2, &map);
+        try addInvalids(range, 2, &set);
     }
-    return sum_keys(map);
+    return sum_keys(set);
 }
 
 fn part2(allocator: Allocator, ranges: []const Range) !u64 {
-    var map = IntSet.init(allocator);
-    defer map.deinit();
+    var set = IntSet.init(allocator);
+    defer set.deinit();
     for (ranges) |range| {
         for (2..12) |rc| {
             const repeat_count: u8 = @intCast(rc);
-            try addInvalids(range, repeat_count, &map);
+            try addInvalids(range, repeat_count, &set);
         }
     }
-    return sum_keys(map);
+    return sum_keys(set);
 }
 
-fn addInvalids(range: Range, repeat_count: u8, map: *IntSet) !void {
+fn addInvalids(range: Range, repeat_count: u8, set: *IntSet) !void {
     const ndlo = range.lotxt.len;
     const ndhi = range.hitxt.len;
     if (ndlo == ndhi) {
-        try addEqualLengthInvalids(range, repeat_count, map);
+        try addEqualLengthInvalids(range, repeat_count, set);
         return;
     }
     else if (ndhi - ndlo > 1) {
@@ -59,18 +58,18 @@ fn addInvalids(range: Range, repeat_count: u8, map: *IntSet) !void {
         const hi = std.math.pow(u64, 10, range.lotxt.len) - 1;
         var buf: [64]u8 = undefined;
         const rword = try std.fmt.bufPrint(&buf, "{d}-{d}", .{lo, hi});
-        try addEqualLengthInvalids(try Range.init(rword), repeat_count, map);
+        try addEqualLengthInvalids(try Range.init(rword), repeat_count, set);
     }
     if (ndhi % repeat_count == 0) {
         const lo = std.math.pow(u64, 10, range.lotxt.len);
         const hi = range.hival;
         var buf: [64]u8 = undefined;
         const rword = try std.fmt.bufPrint(&buf, "{d}-{d}", .{lo, hi});
-        try addEqualLengthInvalids(try Range.init(rword), repeat_count, map);
+        try addEqualLengthInvalids(try Range.init(rword), repeat_count, set);
     }
 }
 
-fn addEqualLengthInvalids(range: Range, repeat_count: u8, map: *IntSet) !void {
+fn addEqualLengthInvalids(range: Range, repeat_count: u8, set: *IntSet) !void {
     const ndlo = range.lotxt.len;
     const ndhi = range.hitxt.len;
     if (ndlo != ndhi) {
@@ -82,23 +81,23 @@ fn addEqualLengthInvalids(range: Range, repeat_count: u8, map: *IntSet) !void {
         const hipref = try std.fmt.parseInt(u64, range.hitxt[0..ndn], 10);
         const v1 = repeat(lopref, ndn, repeat_count);
         if (range.inRange(v1)) {
-            try map.put(v1, {});
+            try set.put_int(v1);
         } 
         if (hipref > lopref) {
             const v2 = repeat(hipref, ndn, repeat_count);
             if (range.inRange(v2)) {
-                try map.put(v2, {});
+                try set.put_int(v2);
             }
             for (lopref+1..hipref) |p| {
                 const v3 = repeat(p, ndn, repeat_count);
-                try map.put(v3, {});
+                try set.put_int(v3);
             }
         }
     }
 }
 
-fn sum_keys(map: IntSet) u64 {
-    var iterator = map.keyIterator();
+fn sum_keys(set: IntSet) u64 {
+    var iterator = set.map.keyIterator();
     var sum: u64 = 0;
     while (iterator.next()) |key| {
         sum += key.*;
@@ -156,6 +155,25 @@ const Range = struct {
 
     pub fn inRange(self: Range, val: u64) bool {
         return val >= self.loval and val <= self.hival;
+    }
+};
+
+const IntSet: type = struct {
+    map: std.AutoHashMap(u64, void),
+
+    pub fn init(allocator: Allocator) IntSet {
+        const map = std.AutoHashMap(u64, void).init(allocator);
+        return IntSet{
+            .map = map,
+        };
+    }
+
+    pub fn deinit(self: *IntSet) void {
+        self.map.deinit();
+    }
+
+    pub fn put_int(self: *IntSet, num: u64) !void {
+        try self.map.put(num, {});
     }
 };
 
