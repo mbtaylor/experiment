@@ -97,6 +97,7 @@ fn addEqualLengthInvalids(range: Range, repeat_count: u8, set: *IntSet) !void {
 }
 
 fn sum_keys(set: IntSet) u64 {
+    // var iterator = set.intIterator();
     var iterator = set.map.keyIterator();
     var sum: u64 = 0;
     while (iterator.next()) |key| {
@@ -175,6 +176,12 @@ const IntSet: type = struct {
     pub fn put_int(self: *IntSet, num: u64) !void {
         try self.map.put(num, {});
     }
+
+
+// I want to do this, but I can't figure out the return type.
+//  pub fn intIterator(self: IntSet) Iterator {
+//      return self.map.keyIterator();
+//  }
 };
 
 fn readLines(allocator: Allocator, fname: []const u8) !DataLines {
