@@ -2,6 +2,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const MAXBUF: usize = 100_000;
+const IntSet = std.AutoHashMap(u64, void);
 
 const filename = "data/input02.txt";
 // const filename = "test02.txt";
@@ -23,7 +24,7 @@ pub fn main() !void {
 }
 
 fn part1(allocator: Allocator, ranges: []const Range) !u64 {
-    var map = std.AutoHashMap(u64, void).init(allocator);
+    var map = IntSet.init(allocator);
     defer map.deinit();
     for (ranges) |range| {
         try addInvalids(range, 2, &map);
@@ -32,7 +33,7 @@ fn part1(allocator: Allocator, ranges: []const Range) !u64 {
 }
 
 fn part2(allocator: Allocator, ranges: []const Range) !u64 {
-    var map = std.AutoHashMap(u64, void).init(allocator);
+    var map = IntSet.init(allocator);
     defer map.deinit();
     for (ranges) |range| {
         for (2..12) |rc| {
@@ -43,7 +44,7 @@ fn part2(allocator: Allocator, ranges: []const Range) !u64 {
     return sum_keys(map);
 }
 
-fn addInvalids(range: Range, repeat_count: u8, map: *std.AutoHashMap(u64, void)) !void {
+fn addInvalids(range: Range, repeat_count: u8, map: *IntSet) !void {
     const ndlo = range.lotxt.len;
     const ndhi = range.hitxt.len;
     if (ndlo == ndhi) {
@@ -69,7 +70,7 @@ fn addInvalids(range: Range, repeat_count: u8, map: *std.AutoHashMap(u64, void))
     }
 }
 
-fn addEqualLengthInvalids(range: Range, repeat_count: u8, map: *std.AutoHashMap(u64, void)) !void {
+fn addEqualLengthInvalids(range: Range, repeat_count: u8, map: *IntSet) !void {
     const ndlo = range.lotxt.len;
     const ndhi = range.hitxt.len;
     if (ndlo != ndhi) {
@@ -96,7 +97,7 @@ fn addEqualLengthInvalids(range: Range, repeat_count: u8, map: *std.AutoHashMap(
     }
 }
 
-fn sum_keys(map: std.AutoHashMap(u64, void)) u64 {
+fn sum_keys(map: IntSet) u64 {
     var iterator = map.keyIterator();
     var sum: u64 = 0;
     while (iterator.next()) |key| {
