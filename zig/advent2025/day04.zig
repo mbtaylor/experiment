@@ -6,7 +6,6 @@ const neighbours: [8][2]isize = .{.{-1, -1}, .{ 0, -1}, .{ 1, -1},
                                   .{-1,  1}, .{ 0,  1}, .{ 1,  1}};
 
 const filename = "data/input04.txt";
-// const filename = "test04.txt";
 
 pub fn main() !void {
     var gpa = std.heap.DebugAllocator(.{}){};
@@ -21,6 +20,8 @@ pub fn main() !void {
 
     const p1 = part1(grid);
     std.debug.print("Part 1: {d}\n", .{p1});
+    const p2 = part2(grid);
+    std.debug.print("Part 2: {d}\n", .{p2});
 }
 
 pub fn part1(grid: Grid) usize {
@@ -46,6 +47,38 @@ pub fn part1(grid: Grid) usize {
         }
     }
     return naccess;
+}
+
+pub fn part2(grid: Grid) usize {
+    var tot: usize = 0;
+    while (true) {
+        var nremove: usize = 0;
+        for (0..grid.ny) |iy| {
+            const jy: isize = @intCast(iy);
+            for (0..grid.nx) |ix| {
+                const jx: isize = @intCast(ix);
+                if (grid.getCell(jx, jy) == '@') {
+                    var nn: usize = 0;
+                    for (neighbours) |dd| {
+                        const px = jx + dd[0];
+                        const py = jy + dd[1];
+                        const c = grid.getCell(px, py);
+                        if (c == '@') {
+                            nn += 1;
+                        }
+                    }
+                    if (nn < 4) {
+                        nremove += 1;
+                        grid.putCell(ix, iy, '.');
+                    }
+                }
+            }
+        }
+        if (nremove == 0) {
+            return tot;
+        }
+        tot += nremove;
+    }
 }
 
 const Grid = struct {
