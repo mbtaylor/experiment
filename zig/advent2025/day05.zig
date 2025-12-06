@@ -1,11 +1,11 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const MAXBUF: usize = 100_000;
+var gpa = std.heap.DebugAllocator(.{}){};
 
 const filename = "data/input05.txt";
 
 pub fn main() !void {
-    var gpa = std.heap.DebugAllocator(.{}){};
     const allocator = gpa.allocator();
     defer _ = gpa.detectLeaks();
 
@@ -17,6 +17,8 @@ pub fn main() !void {
 
     const p1 = part1(input);
     std.debug.print("Part 1: {d}\n", .{p1});
+    const p2 = try part2(input);
+    std.debug.print("Part 2: {d}\n", .{p2});
 }
 
 pub fn part1(input: Input) u64 {
@@ -34,6 +36,52 @@ pub fn part1(input: Input) u64 {
         }
     }
     return nfresh;
+}
+
+pub fn part2(input: Input) !u64 {
+    const allocator = gpa.allocator();
+    var out_range_list: std.ArrayList(Range) = .empty;
+    for (input.ranges) |in_range| {
+        try addRange(allocator, &out_range_list, in_range);
+    }
+    const out_ranges = try out_range_list.toOwnedSlice(allocator);
+    defer allocator.free(out_ranges);
+    var sum: u64 = 0;
+    for (out_ranges) |range| {
+        sum += range.hi - range.lo + 1;
+    }
+    return sum;
+}
+
+fn addRange(allocator: Allocator,
+            out_ranges: *std.ArrayList(Range), in_range: Range) !void {
+    const ilo = in_range.lo;
+    const ihi = in_range.hi;
+    for (out_ranges.items) |out_range| {
+        const olo = out_range.lo;
+        const ohi = out_range.hi;
+        if (ilo >= olo and ihi <= ohi) {
+            return;
+        }
+        else if (ilo < olo and ihi > ohi) {
+            try addRange(allocator,
+                         out_ranges, Range{.lo = ilo, .hi = olo - 1});
+            try addRange(allocator,
+                         out_ranges, Range{.lo = olo + 1, .hi = ihi});
+            return;
+        }
+        else if (ilo < olo and ihi >= olo) {
+            try addRange(allocator,
+                         out_ranges, Range{.lo = ilo, .hi = olo - 1});
+            return;
+        }
+        else if (ilo <= ohi and ihi > ohi) {
+            try addRange(allocator,
+                         out_ranges, Range{.lo = ohi + 1, .hi = ihi});
+            return;
+        }
+    }
+    try out_ranges.append(allocator, in_range);
 }
 
 const Input = struct {
