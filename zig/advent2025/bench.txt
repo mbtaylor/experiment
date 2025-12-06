@@ -1,0 +1,10 @@
+    const nrun: u32 = 1;
+    const t0 = std.time.nanoTimestamp();
+    for (0..nrun) |_| {
+        _ = try part1(codes);
+        _ = try part2(codes);
+    }
+    const elapse: u64 = @intCast(std.time.nanoTimestamp() - t0);
+    const avg_millis = (elapse / nrun) / 1_000_000;
+    std.debug.print("avg runtime: {d}ms\n", .{avg_millis});
+
