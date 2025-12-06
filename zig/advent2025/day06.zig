@@ -3,12 +3,11 @@ const Allocator = std.mem.Allocator;
 const MAXBUF: usize = 100_000;
 var gpa = std.heap.DebugAllocator(.{}){};
 
-// const filename = "data/input06.txt";
-const filename = "test06.txt";
+const filename = "data/input06.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
-//  defer _ = gpa.detectLeaks();
+    defer _ = gpa.detectLeaks();
 
     const data_lines = try readLines(allocator, filename);
     defer data_lines.deinit();
@@ -23,14 +22,11 @@ pub fn main() !void {
 pub fn part1(input: Input) u64 {
     var sum: u64 = 0;
     for (0..input.nx) |ix| {
-        var result: u64 = 0;
         const op = input.ops[ix];
+        var result: u64 = op.identity();
         for (0..input.ny) |iy| {
             const num = input.num(ix, iy);
-            result = switch (op) {
-                Op.plus => result + num,
-                Op.times => result * num,
-            };
+            result = op.operate(result, num);
         }
         sum += result;
     }
@@ -48,7 +44,24 @@ fn readWords(allocator: Allocator, line: []const u8) ![][]const u8 {
     return try words.toOwnedSlice(allocator);
 }
 
-const Op = enum {plus, times};
+const Op = enum {
+    plus,
+    times,
+
+    pub fn identity(self: Op) u64 {
+        return switch (self) {
+            Op.plus => 0,
+            Op.times => 1,
+        };
+    }
+
+    pub fn operate(self: Op, v1: u64, v2: u64) u64 {
+        return switch (self) {
+            Op.plus => v1 + v2,
+            Op.times => v1 * v2,
+        };
+    }
+};
 
 const Input = struct {
     allocator: Allocator,
