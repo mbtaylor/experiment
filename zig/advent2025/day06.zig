@@ -12,14 +12,14 @@ pub fn main() !void {
     const data_lines = try readLines(allocator, filename);
     defer data_lines.deinit();
     const lines = data_lines.line_list;
-    const input = try Input.init(allocator, lines);
-    defer input.deinit();
+    const input1 = try Input1.init(allocator, lines);
+    defer input1.deinit();
 
-    const p1 = part1(input);
+    const p1 = part1(input1);
     std.debug.print("Part 1: {d}\n", .{p1});
 }
 
-pub fn part1(input: Input) u64 {
+pub fn part1(input: Input1) u64 {
     var sum: u64 = 0;
     for (0..input.nx) |ix| {
         const op = input.ops[ix];
@@ -63,14 +63,14 @@ const Op = enum {
     }
 };
 
-const Input = struct {
+const Input1 = struct {
     allocator: Allocator,
     nx: usize,
     ny: usize,
     grid: []const u32,
     ops: []Op,
 
-    pub fn init(allocator: Allocator, lines: [][]const u8) !Input {
+    pub fn init(allocator: Allocator, lines: [][]const u8) !Input1 {
         const ny = lines.len - 1;
         const words0 = try readWords(allocator, lines[0]);
         const nx = words0.len;
@@ -93,7 +93,7 @@ const Input = struct {
             };
         }
         allocator.free(op_words);
-        return Input{
+        return Input1{
             .allocator = allocator,
             .nx = nx,
             .ny = ny,
@@ -102,12 +102,12 @@ const Input = struct {
         };
     }
 
-    pub fn deinit(self: Input) void {
+    pub fn deinit(self: Input1) void {
         self.allocator.free(self.grid);
         self.allocator.free(self.ops);
     }
 
-    pub fn num(self: Input, ix: usize, iy: usize) u32 {
+    pub fn num(self: Input1, ix: usize, iy: usize) u32 {
         return self.grid[iy * self.nx + ix];
     }
 };
