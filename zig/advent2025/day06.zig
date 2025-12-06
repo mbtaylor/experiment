@@ -8,13 +8,33 @@ const filename = "test06.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
-    defer _ = gpa.detectLeaks();
+//  defer _ = gpa.detectLeaks();
 
     const data_lines = try readLines(allocator, filename);
     defer data_lines.deinit();
     const lines = data_lines.line_list;
     const input = try Input.init(allocator, lines);
     defer input.deinit();
+
+    const p1 = part1(input);
+    std.debug.print("Part 1: {d}\n", .{p1});
+}
+
+pub fn part1(input: Input) u64 {
+    var sum: u64 = 0;
+    for (0..input.nx) |ix| {
+        var result: u64 = 0;
+        const op = input.ops[ix];
+        for (0..input.ny) |iy| {
+            const num = input.num(ix, iy);
+            result = switch (op) {
+                Op.plus => result + num,
+                Op.times => result * num,
+            };
+        }
+        sum += result;
+    }
+    return sum;
 }
 
 fn readWords(allocator: Allocator, line: []const u8) ![][]const u8 {
@@ -28,12 +48,14 @@ fn readWords(allocator: Allocator, line: []const u8) ![][]const u8 {
     return try words.toOwnedSlice(allocator);
 }
 
+const Op = enum {plus, times};
+
 const Input = struct {
     allocator: Allocator,
     nx: usize,
     ny: usize,
     grid: []const u32,
-    ops: []const u8,
+    ops: []Op,
 
     pub fn init(allocator: Allocator, lines: [][]const u8) !Input {
         const ny = lines.len - 1;
@@ -41,7 +63,7 @@ const Input = struct {
         const nx = words0.len;
         allocator.free(words0);
         const grid = try allocator.alloc(u32, nx * ny);
-        const ops = try allocator.alloc(u8, nx);
+        const ops = try allocator.alloc(Op, nx);
         for (lines[0..ny], 0..) |line, iy| {
             const num_words = try readWords(allocator, line);
             for (num_words, 0..) |word, ix| {
@@ -49,9 +71,13 @@ const Input = struct {
             }
             allocator.free(num_words);
         }
-        const op_words = try readWords(allocator, lines[ny-1]);
+        const op_words = try readWords(allocator, lines[ny]);
         for (op_words, 0..) |word, ix| {
-            ops[ix] = word[0];
+            ops[ix] = try switch (word[0]) {
+                '+' => Op.plus,
+                '*' => Op.times,
+                else => error.UnknownOp,
+            };
         }
         allocator.free(op_words);
         return Input{
