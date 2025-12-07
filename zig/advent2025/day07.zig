@@ -16,29 +16,37 @@ pub fn main() !void {
     const grid = try Grid.init(allocator, lines);
     defer grid.deinit();
 
-    const p1 = part1(grid);
+    const answer = calculate(grid);
+    const p1 = answer[0];
     std.debug.print("Part 1: {d}\n", .{p1});
+    const p2 = answer[1];
+    std.debug.print("Part 2: {d}\n", .{p2});
 }
 
-pub fn part1(grid: Grid) usize {
+// This is a little bit of a mess, the calculations could be streamlined
+// and one of the arrays doesn't need to be allocated.
+pub fn calculate(grid: Grid) [2]u64 {
     const nx = grid.nx;
     const ny = grid.ny;
     const spos = std.mem.indexOfScalar(u8, grid.buf[0..nx], 'S').?;
-    grid.set(spos, 1, '|');
+    grid.setChar(spos, 1, '|');
+    grid.addCount(spos, 1, @as(u64, 1));
     var nsplit: usize = 0;
     for (1..ny-1) |iy| {
         for (0..nx) |ix| {
-            if (grid.get(ix, iy) == '|') {
-                switch (grid.get(ix, iy+1)) {
+            if (grid.getChar(ix, iy) == '|') {
+                const count0 = grid.getCount(ix, iy);
+                switch (grid.getChar(ix, iy+1)) {
                     '^' => {
-                        grid.set(ix-1, iy+1, '|');
-                        grid.set(ix+1, iy+1, '|');
+                        grid.setChar(ix-1, iy+1, '|');
+                        grid.setChar(ix+1, iy+1, '|');
+                        grid.addCount(ix-1, iy+1, count0);
+                        grid.addCount(ix+1, iy+1, count0);
                         nsplit += 1;
                     },
-                    '.' => {
-                        grid.set(ix, iy+1, '|');
-                    },
-                    '|' => {
+                    '.', '|' => {
+                        grid.setChar(ix, iy+1, '|');
+                        grid.addCount(ix, iy+1, count0);
                     },
                     else => {
                         unreachable;
@@ -47,7 +55,11 @@ pub fn part1(grid: Grid) usize {
             }
         }
     }
-    return nsplit;
+    var npath: u64 = 0;
+    for (0..nx) |ix| {
+        npath += grid.getCount(ix, ny-1);
+    }
+    return [2]u64 {nsplit, npath};
 }
 
 const Grid = struct {
@@ -55,6 +67,7 @@ const Grid = struct {
     nx: usize,
     ny: usize,
     buf: []u8,
+    counts: []u64,
 
     pub fn init(allocator: Allocator, lines: [][]const u8) !Grid {
         const nx = lines[0].len;
@@ -63,24 +76,38 @@ const Grid = struct {
         for (lines, 0..) |line, iy| {
             std.mem.copyForwards(u8, buf[iy*nx..(iy+1)*nx], line);
         }
+        const counts = try allocator.alloc(u64, nx*ny);
+        for (0..nx*ny) |i| {
+            counts[i] = 0;
+        }
         return Grid {
             .allocator = allocator,
             .nx = nx,
             .ny = ny,
             .buf = buf,
+            .counts = counts,
         };
     }
 
-    pub fn get(self: Grid, ix: usize, iy: usize) u8 {
+    pub fn getChar(self: Grid, ix: usize, iy: usize) u8 {
         return self.buf[iy*self.nx + ix];
     }
 
-    pub fn set(self:Grid, ix: usize, iy: usize, c: u8) void {
+    pub fn setChar(self:Grid, ix: usize, iy: usize, c: u8) void {
         self.buf[iy*self.nx + ix] = c;
+    }
+
+    pub fn getCount(self: Grid, ix: usize, iy: usize) u64 {
+        return self.counts[iy*self.nx + ix];
+    }
+
+    pub fn addCount(self: Grid, ix: usize, iy: usize, inc: u64) void {
+        self.counts[iy*self.nx + ix] += inc;
     }
 
     pub fn deinit(self: Grid) void {
         self.allocator.free(self.buf);
+        self.allocator.free(self.counts);
     }
 
     pub fn print(self: Grid) void {
