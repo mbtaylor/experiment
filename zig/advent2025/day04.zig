@@ -33,8 +33,8 @@ pub fn part1(grid: Grid) usize {
             if (grid.getCell(jx, jy) == '@') {
                 var nn: usize = 0;
                 for (neighbours) |dd| {
-                    const px = jx + dd[0];
-                    const py = jy + dd[1];
+                    const px: isize = jx + dd[0];
+                    const py: isize = jy + dd[1];
                     const c = grid.getCell(px, py);
                     if (c == '@') {
                         nn += 1;
@@ -69,7 +69,7 @@ pub fn part2(grid: Grid) usize {
                     }
                     if (nn < 4) {
                         nremove += 1;
-                        grid.putCell(ix, iy, '.');
+                        grid.putCell(jx, jy, '.');
                     }
                 }
             }
@@ -83,47 +83,51 @@ pub fn part2(grid: Grid) usize {
 
 const Grid = struct {
     allocator: Allocator,
-    lines: [][] u8,
+    pad: usize,
+    buf: []u8,
     nx: usize,
     ny: usize,
 
     pub fn init(allocator: Allocator, lines: [][]const u8) !Grid {
+        const pad = 1;
         const ny = lines.len;
         const nx = lines[0].len;
-        const copy_lines: [][]u8 = try allocator.alloc([]u8, lines.len);
-        for (lines, 0..) |line, i| {
-            const copy_line: []u8 = try allocator.alloc(u8, nx);
-            std.mem.copyForwards(u8, copy_line, line);
-            copy_lines[i] = copy_line;
+        const buf = try allocator.alloc(u8, (nx+2*pad)*(ny+2*pad));
+        for (0..buf.len) |i| {
+            buf[i] = ' ';
         }
-        return Grid{
+        const grid = Grid{
             .allocator = allocator,
-            .lines = copy_lines,
+            .pad = pad,
+            .buf = buf,
             .nx = nx,
             .ny = ny,
         };
+        for (lines, 0..) |line, iy| {
+            const jy: isize = @intCast(iy);
+            const mx: isize = @intCast(nx);
+            const dest = grid.buf[grid.offset(0, jy)..grid.offset(mx, jy)];
+            std.mem.copyForwards(u8, dest, line);
+        }
+        return grid;
+    }
+
+    pub fn offset(self: Grid, ix: isize, iy: isize) usize {
+        const pad: isize = @intCast(self.pad);
+        const nx: isize = @intCast(self.nx);
+        return @intCast((pad+iy)*(2*pad+nx) + pad+ix);
     }
 
     pub fn deinit(self: Grid) void {
-        for (self.lines) |line| {
-            self.allocator.free(line);
-        }
-        self.allocator.free(self.lines);
+        self.allocator.free(self.buf);
     }
 
     pub fn getCell(self: Grid, ix: isize, iy: isize) u8 {
-        if (ix >= 0 and ix < self.nx and iy >= 0 and iy < self.ny) {
-            const jx: usize = @intCast(ix);
-            const jy: usize = @intCast(iy);
-            return self.lines[jy][jx];
-        }
-        else {
-            return ' ';
-        }
+        return self.buf[self.offset(ix, iy)];
     }
 
-    pub fn putCell(self: Grid, ix: usize, iy: usize, chr: u8) void {
-        self.lines[iy][ix] = chr;
+    pub fn putCell(self: Grid, ix: isize, iy: isize, chr: u8) void {
+        self.buf[self.offset(ix, iy)] = chr;
     }
 };
 
