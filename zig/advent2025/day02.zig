@@ -97,8 +97,7 @@ fn addEqualLengthInvalids(range: Range, repeat_count: u8, set: *IntSet) !void {
 }
 
 fn sum_keys(set: IntSet) u64 {
-    // var iterator = set.intIterator();
-    var iterator = set.map.keyIterator();
+    var iterator = set.intIterator();
     var sum: u64 = 0;
     while (iterator.next()) |key| {
         sum += key.*;
@@ -160,6 +159,8 @@ const Range = struct {
 };
 
 const IntSet: type = struct {
+    const MapType = std.AutoHashMap(u64, void);
+
     map: std.AutoHashMap(u64, void),
 
     pub fn init(allocator: Allocator) IntSet {
@@ -177,11 +178,9 @@ const IntSet: type = struct {
         try self.map.put(num, {});
     }
 
-
-// I want to do this, but I can't figure out the return type.
-//  pub fn intIterator(self: IntSet) Iterator {
-//      return self.map.keyIterator();
-//  }
+    pub fn intIterator(self: IntSet) MapType.KeyIterator {
+        return self.map.keyIterator();
+    }
 };
 
 fn readLines(allocator: Allocator, fname: []const u8) !DataLines {
