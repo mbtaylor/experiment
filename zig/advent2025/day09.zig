@@ -35,6 +35,35 @@ pub fn part1(points: []const Point) f64 {
     return max;
 }
 
+pub fn part2(points: []const Point) f64 {
+    for (points) |p1| {
+        for (points) |p2| {
+            const xlo: f64 = if (p1.x < p2.x) p1.x else p2.x;
+            const xhi: f64 = if (p1.x < p2.x) p2.x else p1.x;
+            const ylo: f64 = if (p1.y < p2.y) p1.y else p2.y;
+            const yhi: f64 = if (p1.y < p2.y) p2.y else p1.y;
+            const area = (xhi - xlo + 1) * (yhi - ylo + 1);
+
+            // Get vertices of the shape which is slightly smaller than the
+            // full rectangle.  This should avoid edge cases concerning edges.
+            const qlo = Point{.x = xlo + 0.25, .y = ylo + 0.25};
+            const qhi = Point{.x = xhi - 0.25, .y = yhi - 0.25}; 
+  _ = qlo + qhi + area;
+
+            // Then check that at least one of these is in the big polygon
+            // (cheaper to check they all are), and that none of the edges
+            // intersect with the edges of the big polygon.
+            // But the trouble is: what are the edges of the big polygon?
+            // You can't just read off the vertices listed, because they
+            // need a tile's width.
+
+            // Maybe I can just get away with using the integer values
+            // and hope that the edges work themselves out.
+
+        }
+    }
+}
+
 const Point = struct {
     x: f64,
     y: f64,
