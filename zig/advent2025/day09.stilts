@@ -1,0 +1,11 @@
+INPUT=data/input09.txt
+
+stilts tmatch2 \
+       progress=none \
+       matcher=exact values{1,2}=0 find=all \
+       in{1,2}=$INPUT ifmt{1,2}=csv \
+       ocmd='addcol area abs((long)col1_1-col1_2+1)*((long)col2_1-col2_2+1)' \
+       ocmd='keepcols area' \
+       ocmd='stats name maximum' \
+       ocmd='replacecol maximum (long)parseDouble(toString(maximum))' \
+
