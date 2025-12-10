@@ -4,7 +4,6 @@ const MAXBUF: usize = 100_000;
 var gpa = std.heap.DebugAllocator(.{}){};
 
 const filename = "data/input10.txt";
-// const filename = "test10.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -75,14 +74,15 @@ pub fn countBits(pattern: u16) u4 {
 
 const Machine = struct {
     allocator: Allocator,
-    nbit: u4,
+    nbutt: u4,
     target: u16,
     buttons: []u16,
+    joltages: []u32,
 
     pub fn init(allocator: Allocator, line: []const u8) !Machine {
         const target_limits = findBrackets(line, 0, "[]").?;
         const target_txt = line[target_limits[0]..target_limits[1]];
-        const nbit: u4 = @intCast(target_txt.len);
+        const nbutt: u4 = @intCast(target_txt.len);
         var target: u16 = 0;
         var mask: u16 = 1;
         for (target_txt) |c| {
@@ -96,25 +96,36 @@ const Machine = struct {
         while (findBrackets(line, ipos, "()")) |butt_limits| {
             const butt_txt = line[butt_limits[0]..butt_limits[1]];
             ipos = butt_limits[1];
-            var splitIt = std.mem.splitScalar(u8, butt_txt, ',');
+            var split_it = std.mem.splitScalar(u8, butt_txt, ',');
             var butt_mask: u16 = 0;
-            while (splitIt.next()) |word| {
+            while (split_it.next()) |word| {
                 const ibutt = try std.fmt.parseInt(u4, word, 10);
                 butt_mask |= @as(u16, 1) << ibutt;
             }
             try butt_list.append(allocator, butt_mask);
         }
         const buttons = try butt_list.toOwnedSlice(allocator);
+        const jolt_limits = findBrackets(line, ipos, "{}").?;
+        const jolt_txt = line[jolt_limits[0]..jolt_limits[1]];
+        var joltages: []u32 = try allocator.alloc(u32, nbutt);
+        var split_it = std.mem.splitScalar(u8, jolt_txt, ',');
+        var ij: usize = 0;
+        while (split_it.next()) |word| {
+            joltages[ij] = try std.fmt.parseInt(u32, word, 10);
+            ij += 1;
+        }
         return .{
             .allocator = allocator,
-            .nbit = nbit,
+            .nbutt = nbutt,
             .target = target,
             .buttons = buttons,
+            .joltages = joltages,
         };
     }
 
     pub fn deinit(self: Machine) void {
         self.allocator.free(self.buttons);
+        self.allocator.free(self.joltages);
     }
 
     fn findBrackets(line: []const u8, istart: usize, brackets: *const [2:0]u8)
