@@ -3,7 +3,8 @@ const Allocator = std.mem.Allocator;
 const MAXBUF: usize = 100_000;
 var gpa = std.heap.DebugAllocator(.{}){};
 
-const filename = "data/input09.txt";
+// const filename = "data/input09.txt";
+const filename = "test09.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -18,6 +19,9 @@ pub fn main() !void {
     const fp1 = part1(points);
     const p1: u64 = @intFromFloat(fp1);    
     std.debug.print("Part 1: {d}\n", .{p1});
+    const fp2 = part2(points);
+    const p2: u64 = @intFromFloat(fp2);
+    std.debug.print("Part 2: {d}\n", .{p2});
 }
 
 pub fn part1(points: []const Point) f64 {
@@ -36,37 +40,130 @@ pub fn part1(points: []const Point) f64 {
 }
 
 pub fn part2(points: []const Point) f64 {
+    var maxarea: f64 = 0;
     for (points) |p1| {
         for (points) |p2| {
-            const xlo: f64 = if (p1.x < p2.x) p1.x else p2.x;
-            const xhi: f64 = if (p1.x < p2.x) p2.x else p1.x;
-            const ylo: f64 = if (p1.y < p2.y) p1.y else p2.y;
-            const yhi: f64 = if (p1.y < p2.y) p2.y else p1.y;
-            const area = (xhi - xlo + 1) * (yhi - ylo + 1);
-
-            // Get vertices of the shape which is slightly smaller than the
-            // full rectangle.  This should avoid edge cases concerning edges.
-            const qlo = Point{.x = xlo + 0.25, .y = ylo + 0.25};
-            const qhi = Point{.x = xhi - 0.25, .y = yhi - 0.25}; 
-  _ = qlo + qhi + area;
-
-            // Then check that at least one of these is in the big polygon
-            // (cheaper to check they all are), and that none of the edges
-            // intersect with the edges of the big polygon.
-            // But the trouble is: what are the edges of the big polygon?
-            // You can't just read off the vertices listed, because they
-            // need a tile's width.
-
-            // Maybe I can just get away with using the integer values
-            // and hope that the edges work themselves out.
-
+            const rect = Rect.init(p1, p2);
+            const v1 = Point.init(rect.xlo, rect.ylo);
+            const v2 = Point.init(rect.xlo, rect.yhi);
+            const v3 = Point.init(rect.xhi, rect.yhi);
+            const v4 = Point.init(rect.xhi, rect.ylo);
+            const sides: [4]Line = .{
+                Line.init(v1, v2),
+                Line.init(v2, v3),
+                Line.init(v3, v4),
+                Line.init(v4, v1),
+            };
+            var is_inside = true;
+            for (sides) |side| {
+                if (side.crossCount(points) > 0) {
+                    is_inside = false;
+                    break;
+                }
+            }
+            if (is_inside) {
+                maxarea = @max(maxarea, rect.area());
+            }
         }
     }
+    return maxarea;
 }
 
 const Point = struct {
     x: f64,
     y: f64,
+
+    pub fn init(x: f64, y: f64) Point {
+        return Point{.x = x, .y = y,};
+    }
+};
+
+const Line = struct {
+    is_horiz: bool,
+    a: f64,
+    blo: f64,
+    bhi: f64,
+
+    pub fn init(p1: Point, p2: Point) Line {
+        var is_horiz: bool = undefined;
+        var a: f64 = undefined;
+        var blo: f64 = undefined;
+        var bhi: f64 = undefined;
+        if (p1.y == p2.y) {
+            is_horiz = true;
+            a = p1.y;
+            blo = if (p1.x < p2.x) p1.x else p2.x;
+            bhi = if (p1.x < p2.x) p2.x else p1.x;
+        }
+        else if (p1.x == p2.x) {
+            a = p1.x;
+            blo = if (p1.y < p2.y) p1.y else p2.y;
+            bhi = if (p1.y < p2.y) p2.y else p1.y;
+        }
+        else {
+            unreachable;
+        }
+        return .{
+            .is_horiz = is_horiz,
+            .a = a,
+            .blo = blo,
+            .bhi = bhi,
+        };
+    }
+
+    pub fn crossesLine(l1: Line, l2: Line) bool {
+        var lh: Line = undefined;
+        var lv: Line = undefined;
+        if (l1.is_horiz and !l2.is_horiz) {
+            lh = l1;
+            lv = l2;
+        }
+        else if (!l1.is_horiz and l2.is_horiz) {
+            lh = l2;
+            lv = l1;
+        }
+        else {
+            return false;
+        }
+        return lh.a > lv.blo and lh.a < lv.bhi and
+               lh.blo < lv.a and lh.bhi > lv.bhi;
+    }
+
+    pub fn crossCount(self: Line, points: []const Point) u32 {
+        const np = points.len;
+        var ncross: u32 = 0;
+        for (0..np) |ip| {
+            const jp = (ip + 1) % np;
+            if (self.crossesLine(Line.init(points[ip], points[jp]))) {
+                ncross += 1;
+            }
+        }
+        return ncross;
+    }
+};
+
+const Rect = struct {
+    xlo: f64,
+    xhi: f64,
+    ylo: f64,
+    yhi: f64,
+
+    pub fn init(p1: Point, p2: Point) Rect {
+        const xlo = if (p1.x < p2.x) p1.x else p2.x;
+        const xhi = if (p1.x < p2.x) p2.x else p1.x;
+        const ylo = if (p1.y < p2.y) p1.y else p2.y;
+        const yhi = if (p1.y < p2.y) p2.y else p1.y;
+        return .{
+            .xlo = xlo,
+            .xhi = xhi,
+            .ylo = ylo,
+            .yhi = yhi,
+        };
+    }
+
+    pub fn area(self: Rect) f64 {
+        return (self.xhi - self.xlo + 1) * (self.yhi - self.ylo + 1);
+    }
 };
 
 pub fn readPoints(allocator: Allocator, lines: [][]const u8) ![]const Point {
