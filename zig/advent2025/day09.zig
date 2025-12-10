@@ -3,8 +3,7 @@ const Allocator = std.mem.Allocator;
 const MAXBUF: usize = 100_000;
 var gpa = std.heap.DebugAllocator(.{}){};
 
-// const filename = "data/input09.txt";
-const filename = "test09.txt";
+const filename = "data/input09.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -41,8 +40,11 @@ pub fn part1(points: []const Point) f64 {
 
 pub fn part2(points: []const Point) f64 {
     var maxarea: f64 = 0;
-    for (points) |p1| {
-        for (points) |p2| {
+    const np = points.len;
+    for (0..np) |ip| {
+        const p1 = points[ip];
+        for (0..ip) |jp| {
+            const p2 = points[jp];
             const rect = Rect.init(p1, p2);
             const v1 = Point.init(rect.xlo, rect.ylo);
             const v2 = Point.init(rect.xlo, rect.yhi);
@@ -54,15 +56,30 @@ pub fn part2(points: []const Point) f64 {
                 Line.init(v3, v4),
                 Line.init(v4, v1),
             };
+            const w1 = Point.init(rect.xlo + 0.5, rect.ylo + 0.5);
+            const w2 = Point.init(rect.xlo + 0.5, rect.yhi - 0.5);
+            const w3 = Point.init(rect.xhi - 0.5, rect.yhi - 0.5);
+            const w4 = Point.init(rect.xhi - 0.5, rect.ylo + 0.5);
+            const in_points: [4]Point = .{w1, w2, w3, w4};
             var is_inside = true;
-            for (sides) |side| {
-                if (side.crossCount(points) > 0) {
+            for (in_points) |w| {
+                const l0 = Line.init(w, Point.init(w.x, -1));
+                if (l0.crossCount(points) % 2 == 0) {
                     is_inside = false;
                     break;
                 }
             }
             if (is_inside) {
-                maxarea = @max(maxarea, rect.area());
+                for (sides) |side| {
+                    if (side.crossCount(points) > 0) {
+                        is_inside = false;
+                        break;
+                    }
+                }
+            }
+            if (is_inside) {
+                const area = rect.area();
+                maxarea = @max(maxarea, area);
             }
         }
     }
@@ -96,6 +113,7 @@ const Line = struct {
             bhi = if (p1.x < p2.x) p2.x else p1.x;
         }
         else if (p1.x == p2.x) {
+            is_horiz = false;
             a = p1.x;
             blo = if (p1.y < p2.y) p1.y else p2.y;
             bhi = if (p1.y < p2.y) p2.y else p1.y;
@@ -126,7 +144,7 @@ const Line = struct {
             return false;
         }
         return lh.a > lv.blo and lh.a < lv.bhi and
-               lh.blo < lv.a and lh.bhi > lv.bhi;
+               lh.blo < lv.a and lh.bhi > lv.a;
     }
 
     pub fn crossCount(self: Line, points: []const Point) u32 {
