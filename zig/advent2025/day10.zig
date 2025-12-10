@@ -3,8 +3,8 @@ const Allocator = std.mem.Allocator;
 const MAXBUF: usize = 100_000;
 var gpa = std.heap.DebugAllocator(.{}){};
 
-// const filename = "data/input10.txt";
-const filename = "test10.txt";
+const filename = "data/input10.txt";
+// const filename = "test10.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -20,6 +20,36 @@ pub fn main() !void {
         }
         allocator.free(machines);
     }
+
+    const p1 = part1(machines);
+    std.debug.print("Part 1: {d}\n", .{p1});
+}
+
+pub fn part1(machines: []const Machine) u32 {
+    var tot_press: u32 = 0;
+    for (machines) |m| {
+        const nbutt: u4 = @intCast(m.buttons.len);
+        const nposs: u16 = @as(u16, 1) << nbutt;
+        var min_press: u4 = 15;
+        // Could be faster if you sorted the butt_combos by bit count?
+        for (0..nposs) |butt_combo| {
+            var state: u16 = 0;
+            var bitmask: u16 = 1;
+            var npress: u4 = 0;
+            for (0..nbutt) |ibutt| {
+                if (bitmask & butt_combo != 0) {
+                    state ^= m.buttons[ibutt];
+                    npress += 1;
+                }
+                bitmask = bitmask << 1;
+            }
+            if (state == m.target) {
+                min_press = @min(npress, min_press);
+            }
+        }
+        tot_press += min_press;
+    }
+    return tot_press;
 }
 
 pub fn readMachines(allocator: Allocator, lines: [][]const u8) ![]const Machine{
@@ -31,14 +61,28 @@ pub fn readMachines(allocator: Allocator, lines: [][]const u8) ![]const Machine{
     return machines;
 }
 
+pub fn countBits(pattern: u16) u4 {
+    var nbit: u4 = 0;
+    var mask: u4 = 1;
+    for (0..15) |_| {
+        if (pattern & mask != 0) {
+            nbit += 1;
+        }
+        mask = mask << 1;
+    }
+    return nbit;
+}
+
 const Machine = struct {
     allocator: Allocator,
+    nbit: u4,
     target: u16,
     buttons: []u16,
 
     pub fn init(allocator: Allocator, line: []const u8) !Machine {
         const target_limits = findBrackets(line, 0, "[]").?;
         const target_txt = line[target_limits[0]..target_limits[1]];
+        const nbit: u4 = @intCast(target_txt.len);
         var target: u16 = 0;
         var mask: u16 = 1;
         for (target_txt) |c| {
@@ -63,6 +107,7 @@ const Machine = struct {
         const buttons = try butt_list.toOwnedSlice(allocator);
         return .{
             .allocator = allocator,
+            .nbit = nbit,
             .target = target,
             .buttons = buttons,
         };
