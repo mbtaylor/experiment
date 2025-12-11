@@ -7,8 +7,6 @@ const Node = [3]u8;
 const DeviceMap = std.AutoHashMap(Node, Device);
 
 const filename = "data/input11.txt";
-// const filename = "test11a.txt";
-// const filename = "test11b.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -26,8 +24,8 @@ pub fn main() !void {
         allocator.free(devices);
     }
 
-//  const p1 = try part1(allocator, devices);
-//  std.debug.print("Part 1: {d}\n", .{p1});
+    const p1 = try part1(allocator, devices);
+    std.debug.print("Part 1: {d}\n", .{p1});
 
     const p2 = try part2(allocator, devices);
     std.debug.print("Part 2: {d}\n", .{p2});
@@ -63,34 +61,31 @@ pub fn countToTarget(allocator: Allocator, devices: []Device,
         try map.put(device.id, device);
     }
     const count = countToTargetMap(map, from, target);
-    std.debug.print("{s} - {s}: {d}\n", .{from, target, count});
     return count;
 }
 
 pub fn countToTargetMap(map: DeviceMap, from: Node, target: Node) usize {
-    var device = map.getPtr(from) orelse {
-        return 0;
-    };
-    if (device.count_to_target) |count| {
-        return count;
+    if (std.mem.eql(u8, &from, &target)) {
+        return 1;
     }
-    else {
-        var count: usize = 0;
-        if (std.mem.eql(u8, &device.outputs[0], &target)) {
-            count = 1;
+    else if (map.getPtr(from)) |device| {
+        if (device.count_to_target) |count| {
+            return count;
         }
         else {
             var sum: usize = 0;
             for (device.outputs) |next| {
                 sum += countToTargetMap(map, next, target);
             }
-            count = sum;
+            device.count_to_target = sum;
+            return sum;
         }
-        device.count_to_target = count;
-        return count;
+    }
+    else {
+        return 0;
     }
 }
-
+        
 pub fn toNode(txt: []const u8) Node {
     return .{txt[0], txt[1], txt[2]};
 }
