@@ -4,9 +4,11 @@ const MAXBUF: usize = 100_000;
 var gpa = std.heap.DebugAllocator(.{}){};
 
 const Node = [3]u8;
+const out_node = [3]u8 {'o', 'u', 't'};
+const you_node = [3]u8 {'y', 'o', 'u'};
+const DeviceMap = std.AutoHashMap(Node, Device);
 
-// const filename = "data/input11.txt";
-const filename = "test11.txt";
+const filename = "data/input11.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -23,6 +25,40 @@ pub fn main() !void {
         }
         allocator.free(devices);
     }
+
+    const p1 = try part1(allocator, devices);
+    std.debug.print("Part 1: {d}\n", .{p1});
+}
+
+pub fn part1(allocator: Allocator, devices: []const Device) !usize {
+    var map: DeviceMap = DeviceMap.init(allocator);
+    defer map.deinit();
+    for (devices) |device| {
+        try map.put(device.id, device);
+    }
+    return countToOutput(map, you_node);
+}
+
+pub fn countToOutput(map: DeviceMap, from: Node) usize {
+    var device = map.getPtr(from).?;
+    if (device.count_to_out) |count| {
+        return count;
+    }
+    else {
+        var count: usize = 0;
+        if (std.mem.eql(u8, &device.outputs[0], &out_node)) {
+            count = 1;
+        }
+        else {
+            var sum: usize = 0;
+            for (device.outputs) |next| {
+                sum += countToOutput(map, next);
+            }
+            count = sum;
+        }
+        device.count_to_out = count;
+        return count;
+    }
 }
 
 pub fn toNode(txt: []const u8) Node {
@@ -33,6 +69,7 @@ const Device = struct {
     allocator: Allocator,
     id: Node,
     outputs: []Node,
+    count_to_out: ?usize = null,
 
     pub fn deinit(self: Device) void {
         self.allocator.free(self.outputs);
@@ -88,4 +125,3 @@ const DataLines = struct {
         self.allocator.free(self.buf);
     }
 };
-
