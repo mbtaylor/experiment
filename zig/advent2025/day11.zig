@@ -6,9 +6,9 @@ var gpa = std.heap.DebugAllocator(.{}){};
 const Node = [3]u8;
 const DeviceMap = std.AutoHashMap(Node, Device);
 
-// const filename = "data/input11.txt";
+const filename = "data/input11.txt";
 // const filename = "test11a.txt";
-const filename = "test11b.txt";
+// const filename = "test11b.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -29,12 +29,6 @@ pub fn main() !void {
 //  const p1 = try part1(allocator, devices);
 //  std.debug.print("Part 1: {d}\n", .{p1});
 
-    const svr_node = [3]u8 {'s', 'v', 'r'};
-    const dac_node = [3]u8 {'d', 'a', 'c'};
-//  const fft_node = [3]u8 {'f', 'f', 't'};
-//  const out_node = [3]u8 {'o', 'u', 't'};
-    std.debug.print(" -> {d}\n",
-               .{try countToTarget(allocator, devices, svr_node, dac_node)});
     const p2 = try part2(allocator, devices);
     std.debug.print("Part 2: {d}\n", .{p2});
 }
@@ -50,12 +44,12 @@ pub fn part2(allocator: Allocator, devices: []Device) !usize {
     const dac_node = [3]u8 {'d', 'a', 'c'};
     const fft_node = [3]u8 {'f', 'f', 't'};
     const out_node = [3]u8 {'o', 'u', 't'};
-    return (try countToTarget(allocator, devices, svr_node, dac_node) *
-            try countToTarget(allocator, devices, dac_node, fft_node) *
-            try countToTarget(allocator, devices, fft_node, out_node))
-         + (try countToTarget(allocator, devices, svr_node, fft_node) *
+    return (try countToTarget(allocator, devices, svr_node, fft_node) *
             try countToTarget(allocator, devices, fft_node, dac_node) *
-            try countToTarget(allocator, devices, dac_node, out_node));
+            try countToTarget(allocator, devices, dac_node, out_node))
+         + (try countToTarget(allocator, devices, svr_node, dac_node) *
+            try countToTarget(allocator, devices, dac_node, fft_node) *
+            try countToTarget(allocator, devices, fft_node, out_node));
 }
 
 pub fn countToTarget(allocator: Allocator, devices: []Device,
@@ -68,11 +62,15 @@ pub fn countToTarget(allocator: Allocator, devices: []Device,
     for (devices) |device| {
         try map.put(device.id, device);
     }
-    return countToTargetMap(map, from, target);
+    const count = countToTargetMap(map, from, target);
+    std.debug.print("{s} - {s}: {d}\n", .{from, target, count});
+    return count;
 }
 
 pub fn countToTargetMap(map: DeviceMap, from: Node, target: Node) usize {
-    var device = map.getPtr(from).?;
+    var device = map.getPtr(from) orelse {
+        return 0;
+    };
     if (device.count_to_target) |count| {
         return count;
     }
