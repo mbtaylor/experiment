@@ -6,7 +6,9 @@ var gpa = std.heap.DebugAllocator(.{}){};
 const Node = [3]u8;
 const DeviceMap = std.AutoHashMap(Node, Device);
 
-const filename = "data/input11.txt";
+// const filename = "data/input11.txt";
+// const filename = "test11a.txt";
+const filename = "test11b.txt";
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -24,18 +26,43 @@ pub fn main() !void {
         allocator.free(devices);
     }
 
-    const p1 = try part1(allocator, devices);
-    std.debug.print("Part 1: {d}\n", .{p1});
+//  const p1 = try part1(allocator, devices);
+//  std.debug.print("Part 1: {d}\n", .{p1});
+
+    const svr_node = [3]u8 {'s', 'v', 'r'};
+    const dac_node = [3]u8 {'d', 'a', 'c'};
+//  const fft_node = [3]u8 {'f', 'f', 't'};
+//  const out_node = [3]u8 {'o', 'u', 't'};
+    std.debug.print(" -> {d}\n",
+               .{try countToTarget(allocator, devices, svr_node, dac_node)});
+    const p2 = try part2(allocator, devices);
+    std.debug.print("Part 2: {d}\n", .{p2});
 }
 
-pub fn part1(allocator: Allocator, devices: []const Device) !usize {
+pub fn part1(allocator: Allocator, devices: []Device) !usize {
     const out_node = [3]u8 {'o', 'u', 't'};
     const you_node = [3]u8 {'y', 'o', 'u'};
     return try countToTarget(allocator, devices, you_node, out_node);
 }
 
-pub fn countToTarget(allocator: Allocator, devices: []const Device,
+pub fn part2(allocator: Allocator, devices: []Device) !usize {
+    const svr_node = [3]u8 {'s', 'v', 'r'};
+    const dac_node = [3]u8 {'d', 'a', 'c'};
+    const fft_node = [3]u8 {'f', 'f', 't'};
+    const out_node = [3]u8 {'o', 'u', 't'};
+    return (try countToTarget(allocator, devices, svr_node, dac_node) *
+            try countToTarget(allocator, devices, dac_node, fft_node) *
+            try countToTarget(allocator, devices, fft_node, out_node))
+         + (try countToTarget(allocator, devices, svr_node, fft_node) *
+            try countToTarget(allocator, devices, fft_node, dac_node) *
+            try countToTarget(allocator, devices, dac_node, out_node));
+}
+
+pub fn countToTarget(allocator: Allocator, devices: []Device,
                      from: Node, target: Node) !usize {
+    for (devices) |*device| {
+        device.*.count_to_target = null;
+    }
     var map: DeviceMap = DeviceMap.init(allocator);
     defer map.deinit();
     for (devices) |device| {
@@ -81,7 +108,7 @@ const Device = struct {
     }
 };
 
-pub fn readDevices(allocator: Allocator, lines: [][]const u8) ![]const Device {
+pub fn readDevices(allocator: Allocator, lines: [][]const u8) ![]Device {
     var device_list: std.ArrayList(Device) = .empty;
     for (lines) |line| {
         const icolon = std.mem.indexOfScalar(u8, line, ':').?;
