@@ -4,8 +4,6 @@ const MAXBUF: usize = 100_000;
 var gpa = std.heap.DebugAllocator(.{}){};
 
 const Node = [3]u8;
-const out_node = [3]u8 {'o', 'u', 't'};
-const you_node = [3]u8 {'y', 'o', 'u'};
 const DeviceMap = std.AutoHashMap(Node, Device);
 
 const filename = "data/input11.txt";
@@ -31,32 +29,39 @@ pub fn main() !void {
 }
 
 pub fn part1(allocator: Allocator, devices: []const Device) !usize {
+    const out_node = [3]u8 {'o', 'u', 't'};
+    const you_node = [3]u8 {'y', 'o', 'u'};
+    return try countToTarget(allocator, devices, you_node, out_node);
+}
+
+pub fn countToTarget(allocator: Allocator, devices: []const Device,
+                     from: Node, target: Node) !usize {
     var map: DeviceMap = DeviceMap.init(allocator);
     defer map.deinit();
     for (devices) |device| {
         try map.put(device.id, device);
     }
-    return countToOutput(map, you_node);
+    return countToTargetMap(map, from, target);
 }
 
-pub fn countToOutput(map: DeviceMap, from: Node) usize {
+pub fn countToTargetMap(map: DeviceMap, from: Node, target: Node) usize {
     var device = map.getPtr(from).?;
-    if (device.count_to_out) |count| {
+    if (device.count_to_target) |count| {
         return count;
     }
     else {
         var count: usize = 0;
-        if (std.mem.eql(u8, &device.outputs[0], &out_node)) {
+        if (std.mem.eql(u8, &device.outputs[0], &target)) {
             count = 1;
         }
         else {
             var sum: usize = 0;
             for (device.outputs) |next| {
-                sum += countToOutput(map, next);
+                sum += countToTargetMap(map, next, target);
             }
             count = sum;
         }
-        device.count_to_out = count;
+        device.count_to_target = count;
         return count;
     }
 }
@@ -69,7 +74,7 @@ const Device = struct {
     allocator: Allocator,
     id: Node,
     outputs: []Node,
-    count_to_out: ?usize = null,
+    count_to_target: ?usize = null,
 
     pub fn deinit(self: Device) void {
         self.allocator.free(self.outputs);
