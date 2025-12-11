@@ -9,6 +9,12 @@ var gpa = std.heap.DebugAllocator(.{}){};
 const filename = "test08.txt";
 const np: usize = 10;
 
+// Not working.  There's clearly something that I don't understand
+// about HashMaps.
+// Try reading this good reference:
+//   https://www.openmymind.net/Zigs-HashMap-Part-1/
+// and have another go later.
+
 pub fn main() !void {
     const allocator = gpa.allocator();
 //  defer _ = gpa.detectLeaks();
