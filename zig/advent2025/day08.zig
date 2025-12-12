@@ -4,10 +4,10 @@ const MAXBUF: usize = 100_000;
 const MAXDIST: u64 = u64.max;
 var gpa = std.heap.DebugAllocator(.{}){};
 
-// const filename: []const u8 = "data/input08.txt;
-// const np: usize = 1000;
-const filename = "test08.txt";
-const np: usize = 10;
+const filename: []const u8 = "data/input08.txt";
+const np: usize = 1000;
+// const filename = "test08.txt";
+// const np: usize = 10;
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -42,21 +42,39 @@ pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
         }
     }
     std.mem.sort(Pair, pairs, {}, Pair.cmpByDistance);
+  std.debug.print("{d} {d}\n", .{npair, pairs.len});
 
     var group_list: std.ArrayList(IntSet) = .empty;
     for (pairs[0..npair]) |pair| {
-        var added = false;
-        for (group_list.items) |*grp| {
+        var ig1: ?usize = null;
+        var ig2: ?usize = null;
+        for (group_list.items, 0..) |*grp, ig| {
+  // core dump here.  I can't figure out why.
+  // Maybe try it using a bare AutoHashMap, not wrapping it in IntSet,
+  // though I don't know why that would help.
             if (grp.map.contains(pair.iv1)) {
-                try grp.putInt(pair.iv2);
-                added = true;
+                ig1 = ig;
             }
-            if (grp.map.contains(pair.iv2)) {
-                try grp.putInt(pair.iv1);
-                added = true;
+            else if (grp.map.contains(pair.iv2)) {
+                ig2 = ig;
             }
         }
-        if (!added) {
+        if (ig1 != null and ig2 != null) {
+            var g1 = group_list.items[ig1.?];
+            var g2 = group_list.swapRemove(ig2.?);
+            var it = g2.intIterator();
+            while (it.next()) |iv| {
+                try g1.putInt(iv.*);
+            }
+            g2.deinit();
+        }
+        else if (ig1) |jg1| {
+            try group_list.items[jg1].putInt(pair.iv2);
+        }
+        else if (ig2) |jg2| {
+            try group_list.items[jg2].putInt(pair.iv1);
+        }
+        else {
             var group = IntSet.init(allocator);
             try group.putInt(pair.iv1);
             try group.putInt(pair.iv2);
@@ -71,13 +89,12 @@ pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
         allocator.free(groups);
     }
     std.mem.sort(IntSet, groups, {}, IntSet.cmpBySize);
-  for (groups) |group| {
-  _ = group;
-  //std.debug.print("    {d}\n", .{group.map.count()});
-  }
-    return groups[0].map.count()
-         * groups[1].map.count()
-         * groups[2].map.count();
+//for (groups) |group| {
+//  group.print();
+//}
+    return groups[0].count()
+         * groups[1].count()
+         * groups[2].count();
 }
 
 pub fn readVectors(allocator: Allocator, lines: [][]const u8) ![]const Vector {
@@ -100,9 +117,9 @@ const Vector = struct {
     z: i32,
 
     pub fn dist2(self: Vector, other: Vector) u64 {
-        const dx = self.x - other.x;
-        const dy = self.y - other.y;
-        const dz = self.z - other.z;
+        const dx: i64 = @intCast(self.x - other.x);
+        const dy: i64 = @intCast(self.y - other.y);
+        const dz: i64 = @intCast(self.z - other.z);
         return @intCast(dx*dx + dy*dy + dz*dz);
     }
 };
@@ -118,7 +135,7 @@ const Pair = struct {
 };
 
 const IntSet: type = struct {
-    const MapType = std.AutoHashMap(u64, void);
+    const MapType = std.AutoHashMap(usize, void);
 
     map: MapType,
 
@@ -141,14 +158,26 @@ const IntSet: type = struct {
         return self.map.keyIterator();
     }
 
-    fn cmpBySize(context: void, s1: IntSet, s2: IntSet) bool {
-        return std.sort.desc(usize)(context, s1.map.count(), s2.map.count());
+    pub fn count(self: IntSet) usize {
+        // What?? this doesn't give the same value as the iterator count.
+        // return self.map.count();
+        var n: usize = 0;
+        var it = self.intIterator();
+        while (it.next()) |_| {
+            n += 1;
+        }
+        return n;
+    }
+
+    pub fn cmpBySize(context: void, s1: IntSet, s2: IntSet) bool {
+        return std.sort.desc(usize)(context, s1.count(), s2.count());
     }
 
     pub fn print(self: IntSet) void {
-        var it = self.map.keyIterator();
+        std.debug.print("{d}: ", .{self.count()});
+        var it = self.intIterator();
         while (it.next()) |key| {
-            std.debug.print(" {}", .{key});
+            std.debug.print(" {d}", .{key.*});
         }
         std.debug.print("\n", .{});
     }
