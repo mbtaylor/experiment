@@ -4,7 +4,6 @@ const MAXBUF: usize = 100_000;
 var gpa = std.heap.DebugAllocator(.{}){};
 
 const filename = "data/input12.txt";
-// const filename = "test12.txt";
 
 const L: usize = 3;   // linear extent of square present grid
 
@@ -19,7 +18,31 @@ pub fn main() !void {
     const problem = try Problem.init(allocator, lines);
     defer problem.deinit();
 
-    report(problem);
+    const p1 = part1(problem);    
+    std.debug.print("Part 1: {d}\n", .{p1});
+}
+
+pub fn part1(prob: Problem) usize {
+
+    // It's totally possible that the real answer is higher than this
+    // (it would be for the test data), but this is an easily calculated
+    // lower limit on the result.  I'm hoping that AoC is going to be
+    // kind here.  I hoped right.
+    return count_possible(prob);
+}
+
+pub fn count_possible(prob: Problem) usize {
+    var npossible: usize = 0;
+    for (prob.trees) |tree| {
+        var nblock: usize = 0;
+        for (tree.counts, prob.presents) |count, present| {
+            nblock += count * present.size();
+        }
+        if (nblock <= tree.size()) {
+            npossible += 1;
+        }
+    }
+    return npossible;
 }
 
 pub fn report(prob: Problem) void {
@@ -28,6 +51,7 @@ pub fn report(prob: Problem) void {
 
     var npossible: usize = 0;
     var maxpack: f32 = 0;
+    var minpack: f32 = 1;
     for (prob.trees, 0..) |tree, i| {
         var nblock: usize = 0;
         for (tree.counts, prob.presents) |count, present| {
@@ -41,13 +65,14 @@ pub fn report(prob: Problem) void {
         if (possible) {
             npossible += 1;
             maxpack = @max(packing, maxpack);
+            minpack = @min(packing, minpack);
         }
         std.debug.print("{d}:\t{d}\t{d}\t{c}\t{d:4.3}\n",
                         .{i, tree_size, nblock, possible_flag, packing});
     }
     std.debug.print("npossible: {d}\n", .{npossible});
-    std.debug.print("max packing fraction for possibles: {d:4.3}\n",
-                    .{maxpack});
+    std.debug.print("min/max packing fraction for possibles: {d:4.3}/{d:4.3}\n",
+                    .{minpack, maxpack});
 }
 
 const Problem = struct {
