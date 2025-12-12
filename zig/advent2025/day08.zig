@@ -9,15 +9,9 @@ var gpa = std.heap.DebugAllocator(.{}){};
 const filename = "test08.txt";
 const np: usize = 10;
 
-// Not working.  There's clearly something that I don't understand
-// about HashMaps.
-// Try reading this good reference:
-//   https://www.openmymind.net/Zigs-HashMap-Part-1/
-// and have another go later.
-
 pub fn main() !void {
     const allocator = gpa.allocator();
-//  defer _ = gpa.detectLeaks();
+    defer _ = gpa.detectLeaks();
 
     const data_lines = try readLines(allocator, filename);
     defer data_lines.deinit();
@@ -49,10 +43,10 @@ pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
     }
     std.mem.sort(Pair, pairs, {}, Pair.cmpByDistance);
 
-    var group_list: std.ArrayList(*IntSet) = .empty;
+    var group_list: std.ArrayList(IntSet) = .empty;
     for (pairs[0..npair]) |pair| {
         var added = false;
-        for (group_list.items) |grp| {
+        for (group_list.items) |*grp| {
             if (grp.map.contains(pair.iv1)) {
                 try grp.putInt(pair.iv2);
                 added = true;
@@ -66,20 +60,20 @@ pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
             var group = IntSet.init(allocator);
             try group.putInt(pair.iv1);
             try group.putInt(pair.iv2);
-            try group_list.append(allocator, &group);
+            try group_list.append(allocator, group);
         }
     }
     const groups = try group_list.toOwnedSlice(allocator);
     defer {
-//      for (groups) |group| {
-//          group.deinit();
-//      }
+        for (groups) |*group| {
+            group.deinit();
+        }
         allocator.free(groups);
     }
-    std.mem.sort(*IntSet, groups, {}, IntSet.cmpBySize);
+    std.mem.sort(IntSet, groups, {}, IntSet.cmpBySize);
   for (groups) |group| {
-    std.debug.print("    {d}\n", .{group.map.count()});
-    group.print();
+  _ = group;
+  //std.debug.print("    {d}\n", .{group.map.count()});
   }
     return groups[0].map.count()
          * groups[1].map.count()
@@ -147,7 +141,7 @@ const IntSet: type = struct {
         return self.map.keyIterator();
     }
 
-    fn cmpBySize(context: void, s1: *IntSet, s2: *IntSet) bool {
+    fn cmpBySize(context: void, s1: IntSet, s2: IntSet) bool {
         return std.sort.desc(usize)(context, s1.map.count(), s2.map.count());
     }
 
