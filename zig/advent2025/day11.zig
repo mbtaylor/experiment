@@ -32,26 +32,20 @@ pub fn main() !void {
 }
 
 pub fn part1(allocator: Allocator, devices: []Device) !usize {
-    const out_node = [3]u8 {'o', 'u', 't'};
-    const you_node = [3]u8 {'y', 'o', 'u'};
-    return try countToTarget(allocator, devices, you_node, out_node);
+    return try countToTarget(allocator, devices, "you", "out");
 }
 
 pub fn part2(allocator: Allocator, devices: []Device) !usize {
-    const svr_node = [3]u8 {'s', 'v', 'r'};
-    const dac_node = [3]u8 {'d', 'a', 'c'};
-    const fft_node = [3]u8 {'f', 'f', 't'};
-    const out_node = [3]u8 {'o', 'u', 't'};
-    return (try countToTarget(allocator, devices, svr_node, fft_node) *
-            try countToTarget(allocator, devices, fft_node, dac_node) *
-            try countToTarget(allocator, devices, dac_node, out_node))
-         + (try countToTarget(allocator, devices, svr_node, dac_node) *
-            try countToTarget(allocator, devices, dac_node, fft_node) *
-            try countToTarget(allocator, devices, fft_node, out_node));
+    return (try countToTarget(allocator, devices, "svr", "fft" ) *
+            try countToTarget(allocator, devices, "fft", "dac" ) *
+            try countToTarget(allocator, devices, "dac", "out" ))
+         + (try countToTarget(allocator, devices, "svr", "dac" ) *
+            try countToTarget(allocator, devices, "dac", "fft" ) *
+            try countToTarget(allocator, devices, "fft", "out" ));
 }
 
 pub fn countToTarget(allocator: Allocator, devices: []Device,
-                     from: Node, target: Node) !usize {
+                     fromTxt: *const Node, targetTxt: *const Node) !usize {
     for (devices) |*device| {
         device.*.count_to_target = null;
     }
@@ -60,7 +54,7 @@ pub fn countToTarget(allocator: Allocator, devices: []Device,
     for (devices) |device| {
         try map.put(device.id, device);
     }
-    const count = countToTargetMap(map, from, target);
+    const count = countToTargetMap(map, toNode(fromTxt), toNode(targetTxt));
     return count;
 }
 

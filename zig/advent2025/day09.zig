@@ -56,6 +56,12 @@ pub fn part2(points: []const Point) f64 {
                 Line.init(v3, v4),
                 Line.init(v4, v1),
             };
+
+            // First check if the rectangle that's a bit smaller than
+            // the one bounded by the points is actually inside the
+            // container polygon.  Do it by checking if a line drawn
+            // from each vertex to somewhere outside the field crosses
+            // the boundary an odd number of times - if so it's escaped.
             const w1 = Point.init(rect.xlo + 0.5, rect.ylo + 0.5);
             const w2 = Point.init(rect.xlo + 0.5, rect.yhi - 0.5);
             const w3 = Point.init(rect.xhi - 0.5, rect.yhi - 0.5);
@@ -69,6 +75,9 @@ pub fn part2(points: []const Point) f64 {
                     break;
                 }
             }
+
+            // Then check whether the side of the full rectangle
+            // crosses the boundary at all.  If so, no good.
             if (is_inside) {
                 for (sides) |side| {
                     if (side.crossCount(points) > 0) {
