@@ -4,10 +4,10 @@ const MAXBUF: usize = 100_000;
 const MAXDIST: u64 = u64.max;
 var gpa = std.heap.DebugAllocator(.{}){};
 
-const filename: []const u8 = "data/input08.txt";
-const np: usize = 1000;
-// const filename = "test08.txt";
-// const np: usize = 10;
+// const filename: []const u8 = "data/input08.txt";
+// const np: usize = 1000;
+const filename = "test08.txt";
+const np: usize = 10;
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -24,6 +24,8 @@ pub fn main() !void {
 
     const p1 = try part1(allocator, sorted_pairs, np);
     std.debug.print("Part 1: {d}\n", .{p1});
+    const p2 = try part2(allocator, sorted_pairs, vectors);
+    std.debug.print("Part 2: {d}\n", .{p2});
 }
 
 pub fn part1(allocator: Allocator, pairs: []const Pair, npair: usize) !u64 {
@@ -32,27 +34,32 @@ pub fn part1(allocator: Allocator, pairs: []const Pair, npair: usize) !u64 {
         var ig1: ?usize = null;
         var ig2: ?usize = null;
         for (group_list.items, 0..) |*grp, ig| {
-            if (grp.map.contains(pair.iv1)) {
+            if (grp.containsInt(pair.iv1)) {
                 ig1 = ig;
             }
-            else if (grp.map.contains(pair.iv2)) {
+            else if (grp.containsInt(pair.iv2)) {
                 ig2 = ig;
             }
         }
         if (ig1 != null and ig2 != null) {
-            var g1 = &group_list.items[ig1.?];
-            var g2 = group_list.swapRemove(ig2.?);
+            const jg1 = ig1.?;
+            const jg2 = ig2.?;
+            var g1 = &group_list.items[jg1];
+            var g2 = &group_list.items[jg2];
             var it = g2.intIterator();
             while (it.next()) |iv| {
                 try g1.putInt(iv.*);
             }
             g2.deinit();
+            _ = group_list.swapRemove(jg2);
         }
         else if (ig1) |jg1| {
-            try group_list.items[jg1].putInt(pair.iv2);
+            var g1 = &group_list.items[jg1];
+            try g1.putInt(pair.iv2);
         }
         else if (ig2) |jg2| {
-            try group_list.items[jg2].putInt(pair.iv1);
+            var g2 = &group_list.items[jg2];
+            try g2.putInt(pair.iv1);
         }
         else {
             var group = IntSet.init(allocator);
@@ -61,6 +68,7 @@ pub fn part1(allocator: Allocator, pairs: []const Pair, npair: usize) !u64 {
             try group_list.append(allocator, group);
         }
     }
+
     const groups = try group_list.toOwnedSlice(allocator);
     defer {
         for (groups) |*group| {
@@ -72,6 +80,62 @@ pub fn part1(allocator: Allocator, pairs: []const Pair, npair: usize) !u64 {
     return groups[0].count()
          * groups[1].count()
          * groups[2].count();
+}
+
+pub fn part2(allocator: Allocator, pairs: []const Pair,
+             vectors: []const Vector) !u64 {
+    var group_list: std.ArrayList(IntSet) = .empty;
+    defer group_list.deinit(allocator);
+    for (pairs) |pair| {
+ std.debug.print("{d}, {d}\n", .{pair.iv1, pair.iv2});
+        var ig1: ?usize = null;
+        var ig2: ?usize = null;
+        for (group_list.items, 0..) |*grp, ig| {
+            if (grp.containsInt(pair.iv1)) {
+                ig1 = ig;
+            }
+            else if (grp.containsInt(pair.iv2)) {
+                ig2 = ig;
+            }
+        }
+        if (ig1 != null and ig2 != null) {
+            const jg1 = ig1.?;
+            const jg2 = ig2.?;
+            var g1 = &group_list.items[jg1];
+            var g2 = &group_list.items[jg2];
+            var it = g2.intIterator();
+            while (it.next()) |iv| {
+                try g1.putInt(iv.*);
+            }
+            g2.deinit();
+            _ = group_list.swapRemove(jg2);
+            if (group_list.items.len == 1) {
+                var g0 = group_list.items[0];
+                g0.deinit();
+                const vec1 = vectors[pair.iv1];
+                const vec2 = vectors[pair.iv2];
+                return @intCast(vec1.x * vec2.x);
+            }
+        }
+        else if (ig1) |jg1| {
+            var g1 = &group_list.items[jg1];
+            try g1.putInt(pair.iv2);
+        }
+        else if (ig2) |jg2| {
+            var g2 = &group_list.items[jg2];
+            try g2.putInt(pair.iv1);
+        }
+        else {
+            var group = IntSet.init(allocator);
+            try group.putInt(pair.iv1);
+            try group.putInt(pair.iv2);
+            try group_list.append(allocator, group);
+        }
+   for (group_list.items) |*grp| {
+     grp.print();
+   }
+    }
+    return error.NotAllConnected;
 }
 
 pub fn readVectors(allocator: Allocator, lines: [][]const u8) ![]const Vector {
@@ -155,12 +219,26 @@ const IntSet: type = struct {
         try self.map.put(@intCast(num), {});
     }
 
-    pub fn intIterator(self: IntSet) MapType.KeyIterator {
+    pub fn intIterator(self: *IntSet) MapType.KeyIterator {
         return self.map.keyIterator();
+    }
+
+    pub fn containsInt(self: IntSet, num: usize) bool {
+        const map = self.map;
+        return map.contains(num);
     }
 
     pub fn cmpBySize(context: void, s1: IntSet, s2: IntSet) bool {
         return std.sort.desc(usize)(context, s1.count(), s2.count());
+    }
+
+    pub fn print(self: *IntSet) void {
+        std.debug.print("\t{d}: ", .{self.count()});
+        var it = self.intIterator();
+        while (it.next()) |key| {
+            std.debug.print(" {d}", .{key.*});
+        }
+        std.debug.print("\n", .{});
     }
 };
 
