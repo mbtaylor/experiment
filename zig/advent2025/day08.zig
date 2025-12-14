@@ -4,10 +4,8 @@ const MAXBUF: usize = 100_000;
 const MAXDIST: u64 = u64.max;
 var gpa = std.heap.DebugAllocator(.{}){};
 
-// const filename: []const u8 = "data/input08.txt";
-// const np: usize = 1000;
-const filename = "test08.txt";
-const np: usize = 10;
+const filename: []const u8 = "data/input08.txt";
+const np: usize = 1000;
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -87,7 +85,6 @@ pub fn part2(allocator: Allocator, pairs: []const Pair,
     var group_list: std.ArrayList(IntSet) = .empty;
     defer group_list.deinit(allocator);
     for (pairs) |pair| {
- std.debug.print("{d}, {d}\n", .{pair.iv1, pair.iv2});
         var ig1: ?usize = null;
         var ig2: ?usize = null;
         for (group_list.items, 0..) |*grp, ig| {
@@ -112,9 +109,9 @@ pub fn part2(allocator: Allocator, pairs: []const Pair,
             if (group_list.items.len == 1) {
                 var g0 = group_list.items[0];
                 g0.deinit();
-                const vec1 = vectors[pair.iv1];
-                const vec2 = vectors[pair.iv2];
-                return @intCast(vec1.x * vec2.x);
+                const x1: u64 = @intCast(vectors[pair.iv1].x);
+                const x2: u64 = @intCast(vectors[pair.iv2].x);
+                return x1 * x2;
             }
         }
         else if (ig1) |jg1| {
@@ -131,9 +128,6 @@ pub fn part2(allocator: Allocator, pairs: []const Pair,
             try group.putInt(pair.iv2);
             try group_list.append(allocator, group);
         }
-   for (group_list.items) |*grp| {
-     grp.print();
-   }
     }
     return error.NotAllConnected;
 }
@@ -230,15 +224,6 @@ const IntSet: type = struct {
 
     pub fn cmpBySize(context: void, s1: IntSet, s2: IntSet) bool {
         return std.sort.desc(usize)(context, s1.count(), s2.count());
-    }
-
-    pub fn print(self: *IntSet) void {
-        std.debug.print("\t{d}: ", .{self.count()});
-        var it = self.intIterator();
-        while (it.next()) |key| {
-            std.debug.print(" {d}", .{key.*});
-        }
-        std.debug.print("\n", .{});
     }
 };
 
