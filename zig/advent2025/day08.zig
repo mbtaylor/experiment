@@ -80,6 +80,9 @@ pub fn part1(allocator: Allocator, pairs: []const Pair, npair: usize) !u64 {
          * groups[2].count();
 }
 
+// Interestingly, this works in Debug and ReleaseSafe mode,
+// but it gives the wrong answer (0) in ReleaseSmall and ReleaseFast.
+// No runtime error is reported in any of these modes.
 pub fn part2(allocator: Allocator, pairs: []const Pair,
              vectors: []const Vector) !u64 {
     var group_list: std.ArrayList(IntSet) = .empty;
@@ -224,6 +227,15 @@ const IntSet: type = struct {
 
     pub fn cmpBySize(context: void, s1: IntSet, s2: IntSet) bool {
         return std.sort.desc(usize)(context, s1.count(), s2.count());
+    }
+
+    pub fn print(self: *IntSet) void {
+        std.debug.print("\t{d}: ", .{self.count()});
+        var it = self.intIterator();
+        while (it.next()) |key| {
+            std.debug.print(" {d}", .{key.*});
+        }
+        std.debug.print("\n", .{});
     }
 };
 
