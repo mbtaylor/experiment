@@ -19,30 +19,14 @@ pub fn main() !void {
 
     const vectors = try readVectors(allocator, lines);
     defer allocator.free(vectors);
+    const sorted_pairs = try sortedPairs(allocator, vectors);
+    defer allocator.free(sorted_pairs);
 
-    const p1 = try part1(allocator, vectors, np);
+    const p1 = try part1(allocator, sorted_pairs, np);
     std.debug.print("Part 1: {d}\n", .{p1});
 }
 
-pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
-    const nv = vectors.len;
-    var pairs: []Pair = try allocator.alloc(Pair, nv * (nv-1));
-    defer allocator.free(pairs);
-    var ip: usize = 0;
-    for (0..nv) |iv| {
-        const v1 = vectors[iv];
-        for (0..iv) |jv| {
-            const v2 = vectors[jv];
-            pairs[ip] = .{
-                .iv1 = jv,
-                .iv2 = iv,
-                .dist2 = v1.dist2(v2),
-            };
-            ip += 1;
-        }
-    }
-    std.mem.sort(Pair, pairs, {}, Pair.cmpByDistance);
-
+pub fn part1(allocator: Allocator, pairs: []const Pair, npair: usize) !u64 {
     var group_list: std.ArrayList(IntSet) = .empty;
     for (pairs[0..npair]) |pair| {
         var ig1: ?usize = null;
@@ -102,6 +86,26 @@ pub fn readVectors(allocator: Allocator, lines: [][]const u8) ![]const Vector {
         };
     }
     return vectors;
+}
+
+pub fn sortedPairs(allocator: Allocator, vectors: []const Vector) ![]const Pair{
+    const nv = vectors.len;
+    var pairs: []Pair = try allocator.alloc(Pair, nv * (nv-1));
+    var ip: usize = 0;
+    for (0..nv) |iv| {
+        const v1 = vectors[iv];
+        for (0..iv) |jv| {
+            const v2 = vectors[jv];
+            pairs[ip] = .{
+                .iv1 = jv,
+                .iv2 = iv,
+                .dist2 = v1.dist2(v2),
+            };
+            ip += 1;
+        }
+    }
+    std.mem.sort(Pair, pairs, {}, Pair.cmpByDistance);
+    return pairs;
 }
 
 const Vector = struct {
