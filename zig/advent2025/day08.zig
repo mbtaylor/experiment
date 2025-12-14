@@ -42,16 +42,12 @@ pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
         }
     }
     std.mem.sort(Pair, pairs, {}, Pair.cmpByDistance);
-  std.debug.print("{d} {d}\n", .{npair, pairs.len});
 
     var group_list: std.ArrayList(IntSet) = .empty;
     for (pairs[0..npair]) |pair| {
         var ig1: ?usize = null;
         var ig2: ?usize = null;
         for (group_list.items, 0..) |*grp, ig| {
-  // core dump here.  I can't figure out why.
-  // Maybe try it using a bare AutoHashMap, not wrapping it in IntSet,
-  // though I don't know why that would help.
             if (grp.map.contains(pair.iv1)) {
                 ig1 = ig;
             }
@@ -60,7 +56,7 @@ pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
             }
         }
         if (ig1 != null and ig2 != null) {
-            var g1 = group_list.items[ig1.?];
+            var g1 = &group_list.items[ig1.?];
             var g2 = group_list.swapRemove(ig2.?);
             var it = g2.intIterator();
             while (it.next()) |iv| {
@@ -89,9 +85,6 @@ pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
         allocator.free(groups);
     }
     std.mem.sort(IntSet, groups, {}, IntSet.cmpBySize);
-//for (groups) |group| {
-//  group.print();
-//}
     return groups[0].count()
          * groups[1].count()
          * groups[2].count();
@@ -150,6 +143,10 @@ const IntSet: type = struct {
         self.map.deinit();
     }
 
+    pub fn count(self: IntSet) usize {
+        return self.map.count();
+    }
+
     pub fn putInt(self: *IntSet, num: usize) !void {
         try self.map.put(@intCast(num), {});
     }
@@ -158,28 +155,8 @@ const IntSet: type = struct {
         return self.map.keyIterator();
     }
 
-    pub fn count(self: IntSet) usize {
-        // What?? this doesn't give the same value as the iterator count.
-        // return self.map.count();
-        var n: usize = 0;
-        var it = self.intIterator();
-        while (it.next()) |_| {
-            n += 1;
-        }
-        return n;
-    }
-
     pub fn cmpBySize(context: void, s1: IntSet, s2: IntSet) bool {
         return std.sort.desc(usize)(context, s1.count(), s2.count());
-    }
-
-    pub fn print(self: IntSet) void {
-        std.debug.print("{d}: ", .{self.count()});
-        var it = self.intIterator();
-        while (it.next()) |key| {
-            std.debug.print(" {d}", .{key.*});
-        }
-        std.debug.print("\n", .{});
     }
 };
 
