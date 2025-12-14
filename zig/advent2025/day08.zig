@@ -4,10 +4,11 @@ const MAXBUF: usize = 100_000;
 const MAXDIST: u64 = u64.max;
 var gpa = std.heap.DebugAllocator(.{}){};
 
-const filename: []const u8 = "data/input08.txt";
-const np: usize = 1000;
-// const filename = "test08.txt";
-// const np: usize = 10;
+
+// const filename: []const u8 = "data/input08.txt";
+// const np: usize = 1000;
+const filename = "test08.txt";
+const np: usize = 10;
 
 pub fn main() !void {
     const allocator = gpa.allocator();
@@ -42,42 +43,38 @@ pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
         }
     }
     std.mem.sort(Pair, pairs, {}, Pair.cmpByDistance);
-  std.debug.print("{d} {d}\n", .{npair, pairs.len});
 
-    var group_list: std.ArrayList(IntSet) = .empty;
+    var group_list: std.ArrayList(IntMap) = .empty;
     for (pairs[0..npair]) |pair| {
         var ig1: ?usize = null;
         var ig2: ?usize = null;
         for (group_list.items, 0..) |*grp, ig| {
-  // core dump here.  I can't figure out why.
-  // Maybe try it using a bare AutoHashMap, not wrapping it in IntSet,
-  // though I don't know why that would help.
-            if (grp.map.contains(pair.iv1)) {
+            if (grp.contains(pair.iv1)) {
                 ig1 = ig;
             }
-            else if (grp.map.contains(pair.iv2)) {
+            else if (grp.contains(pair.iv2)) {
                 ig2 = ig;
             }
         }
         if (ig1 != null and ig2 != null) {
             var g1 = group_list.items[ig1.?];
             var g2 = group_list.swapRemove(ig2.?);
-            var it = g2.intIterator();
+            var it = g2.keyIterator();
             while (it.next()) |iv| {
-                try g1.putInt(iv.*);
+                try g1.put(@intCast(iv.*), {});
             }
             g2.deinit();
         }
         else if (ig1) |jg1| {
-            try group_list.items[jg1].putInt(pair.iv2);
+            try group_list.items[jg1].put(@intCast(pair.iv2), {});
         }
         else if (ig2) |jg2| {
-            try group_list.items[jg2].putInt(pair.iv1);
+            try group_list.items[jg2].put(@intCast(pair.iv1), {});
         }
         else {
-            var group = IntSet.init(allocator);
-            try group.putInt(pair.iv1);
-            try group.putInt(pair.iv2);
+            var group = IntMap.init(allocator);
+            try group.put(@intCast(pair.iv1), {});
+            try group.put(@intCast(pair.iv2), {});
             try group_list.append(allocator, group);
         }
     }
@@ -88,10 +85,10 @@ pub fn part1(allocator: Allocator, vectors: []const Vector, npair: usize) !u64 {
         }
         allocator.free(groups);
     }
-    std.mem.sort(IntSet, groups, {}, IntSet.cmpBySize);
-//for (groups) |group| {
-//  group.print();
-//}
+    std.mem.sort(IntMap, groups, {}, cmpBySize);
+  for (groups) |group| {
+    printMap(group);
+  }
     return groups[0].count()
          * groups[1].count()
          * groups[2].count();
@@ -109,6 +106,10 @@ pub fn readVectors(allocator: Allocator, lines: [][]const u8) ![]const Vector {
         };
     }
     return vectors;
+}
+
+fn cmpBySize(context: void, s1: IntMap, s2: IntMap) bool {
+    return std.sort.desc(usize)(context, s1.count(), s2.count());
 }
 
 const Vector = struct {
@@ -182,6 +183,17 @@ const IntSet: type = struct {
         std.debug.print("\n", .{});
     }
 };
+
+const IntMap = std.AutoHashMap(usize, void);
+
+pub fn printMap(map: IntMap) void {
+    std.debug.print("{d}: ", .{map.count()});
+    var it = map.keyIterator();
+    while (it.next()) |key| {
+        std.debug.print(" {d},", .{key.*});
+    }
+    std.debug.print("\n", .{});
+}
 
 
 fn readLines(allocator: Allocator, fname: []const u8) !DataLines {
