@@ -18,7 +18,7 @@ pub fn main() !void {
     const fp1 = part1(points);
     const p1: u64 = @intFromFloat(fp1);    
     std.debug.print("Part 1: {d}\n", .{p1});
-    const fp2 = part2(points);
+    const fp2 = try part2(allocator, points);
     const p2: u64 = @intFromFloat(fp2);
     std.debug.print("Part 2: {d}\n", .{p2});
 }
@@ -38,7 +38,9 @@ pub fn part1(points: []const Point) f64 {
     return max;
 }
 
-pub fn part2(points: []const Point) f64 {
+pub fn part2(allocator: Allocator, points: []const Point ) !f64 {
+    const shape_lines = try pointsToSides(allocator, points);
+    defer allocator.free(shape_lines);
     var maxarea: f64 = 0;
     const np = points.len;
     for (0..np) |ip| {
@@ -50,7 +52,7 @@ pub fn part2(points: []const Point) f64 {
             const v2 = Point.init(rect.xlo, rect.yhi);
             const v3 = Point.init(rect.xhi, rect.yhi);
             const v4 = Point.init(rect.xhi, rect.ylo);
-            const sides: [4]Line = .{
+            const rsides: [4]Line = .{
                 Line.init(v1, v2),
                 Line.init(v2, v3),
                 Line.init(v3, v4),
@@ -70,7 +72,7 @@ pub fn part2(points: []const Point) f64 {
             var is_inside = true;
             for (in_points) |w| {
                 const l0 = Line.init(w, Point.init(w.x, -1));
-                if (l0.crossCount(points) % 2 == 0) {
+                if (l0.crossCount(shape_lines) % 2 == 0) {
                     is_inside = false;
                     break;
                 }
@@ -79,8 +81,8 @@ pub fn part2(points: []const Point) f64 {
             // Then check whether the side of the full rectangle
             // crosses the boundary at all.  If so, no good.
             if (is_inside) {
-                for (sides) |side| {
-                    if (side.crossCount(points) > 0) {
+                for (rsides) |side| {
+                    if (side.crossAny(shape_lines)) {
                         is_inside = false;
                         break;
                     }
@@ -141,28 +143,35 @@ const Line = struct {
     pub fn crossesLine(l1: Line, l2: Line) bool {
         var lh: Line = undefined;
         var lv: Line = undefined;
-        if (l1.is_horiz and !l2.is_horiz) {
+        if (l1.is_horiz == l2.is_horiz) {
+            return false;
+        }
+        else if (l1.is_horiz) {
             lh = l1;
             lv = l2;
         }
-        else if (!l1.is_horiz and l2.is_horiz) {
+        else {
             lh = l2;
             lv = l1;
-        }
-        else {
-            return false;
         }
         return lh.a > lv.blo and lh.a < lv.bhi and
                lh.blo < lv.a and lh.bhi > lv.a;
     }
 
-    pub fn crossCount(self: Line, points: []const Point) u32 {
-        const np = points.len;
+    pub fn crossAny(self: Line, lines: []const Line) bool {
+        for (lines) |line| {
+            if (self.crossesLine(line)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn crossCount(self: Line, lines: []const Line) u32 {
         var ncross: u32 = 0;
-        for (0..np) |ip| {
-            const jp = (ip + 1) % np;
-            if (self.crossesLine(Line.init(points[ip], points[jp]))) {
-                ncross += 1;
+        for (lines) |line| {
+            if (self.crossesLine(line)) {
+                ncross +=1;
             }
         }
         return ncross;
@@ -192,6 +201,15 @@ const Rect = struct {
         return (self.xhi - self.xlo + 1) * (self.yhi - self.ylo + 1);
     }
 };
+
+pub fn pointsToSides(allocator: Allocator, points: []const Point) ![]const Line{
+    const np = points.len;
+    var sides = try allocator.alloc(Line, np);
+    for (0..np) |ip| {
+        sides[ip] = Line.init(points[ip], points[(ip + 1) % np]);
+    }
+    return sides;
+}
 
 pub fn readPoints(allocator: Allocator, lines: [][]const u8) ![]const Point {
     const np = lines.len;
