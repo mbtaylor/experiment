@@ -80,9 +80,6 @@ pub fn part1(allocator: Allocator, pairs: []const Pair, npair: usize) !u64 {
          * groups[2].count();
 }
 
-// Interestingly, this works in Debug and ReleaseSafe mode,
-// but it gives the wrong answer (0) in ReleaseSmall and ReleaseFast.
-// No runtime error is reported in any of these modes.
 pub fn part2(allocator: Allocator, pairs: []const Pair,
              vectors: []const Vector) !u64 {
     var group_list: std.ArrayList(IntSet) = .empty;
@@ -151,11 +148,12 @@ pub fn readVectors(allocator: Allocator, lines: [][]const u8) ![]const Vector {
 
 pub fn sortedPairs(allocator: Allocator, vectors: []const Vector) ![]const Pair{
     const nv = vectors.len;
-    var pairs: []Pair = try allocator.alloc(Pair, nv * (nv-1));
+    var pairs: []Pair = try allocator.alloc(Pair, nv * (nv-1) / 2);
     var ip: usize = 0;
     for (0..nv) |iv| {
         const v1 = vectors[iv];
         for (0..iv) |jv| {
+            if (iv == jv) unreachable;
             const v2 = vectors[jv];
             pairs[ip] = .{
                 .iv1 = jv,
