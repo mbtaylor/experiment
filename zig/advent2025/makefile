@@ -2,8 +2,10 @@ DAYS = day01 day02 day03 day04 day05 day06 day07 day08 day09 day10 day11 day12
 BENCHOPT = -O ReleaseFast
 
 
-$(DAYS): $(DAYS:=.zig)
+$(DAYS): $(@:.zig=)
 	zig build-exe $@.zig $(BENCHOPT)
+
+exe: $(DAYS)
 
 bench: $(DAYS)
 	@for d in $(DAYS); do \
