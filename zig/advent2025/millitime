@@ -1,0 +1,6 @@
+#!/bin/sh
+
+t0=`date +%s%3N`
+echo $* | bash
+t1=`date +%s%3N`
+echo "\t\t\tElapsed time:" $((t1-t0))ms
