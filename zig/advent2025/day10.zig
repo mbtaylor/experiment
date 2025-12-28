@@ -74,7 +74,6 @@ pub fn countBits(pattern: u16) u4 {
 
 const Machine = struct {
     allocator: Allocator,
-    nbutt: u4,
     target: u16,
     buttons: []u16,
     joltages: []u32,
@@ -82,7 +81,7 @@ const Machine = struct {
     pub fn init(allocator: Allocator, line: []const u8) !Machine {
         const target_limits = findBrackets(line, 0, "[]").?;
         const target_txt = line[target_limits[0]..target_limits[1]];
-        const nbutt: u4 = @intCast(target_txt.len);
+        const nlight: u4 = @intCast(target_txt.len);
         var target: u16 = 0;
         var mask: u16 = 1;
         for (target_txt) |c| {
@@ -107,7 +106,7 @@ const Machine = struct {
         const buttons = try butt_list.toOwnedSlice(allocator);
         const jolt_limits = findBrackets(line, ipos, "{}").?;
         const jolt_txt = line[jolt_limits[0]..jolt_limits[1]];
-        var joltages: []u32 = try allocator.alloc(u32, nbutt);
+        var joltages: []u32 = try allocator.alloc(u32, nlight);
         var split_it = std.mem.splitScalar(u8, jolt_txt, ',');
         var ij: usize = 0;
         while (split_it.next()) |word| {
@@ -116,7 +115,6 @@ const Machine = struct {
         }
         return .{
             .allocator = allocator,
-            .nbutt = nbutt,
             .target = target,
             .buttons = buttons,
             .joltages = joltages,
