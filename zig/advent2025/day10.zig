@@ -58,9 +58,11 @@ pub fn part1(machines: []const Machine) u32 {
 pub fn part2(allocator: Allocator, machines: []const Machine) !u32 {
     var sum: u32 = 0;
     for (machines, 0..) |*m, i| {
+        const t0 = std.time.nanoTimestamp();
         const jp = try countJoltPushes(allocator, m);
+        const millis = @divFloor(std.time.nanoTimestamp()-t0, 1000000);
         sum += jp;
-  std.debug.print("{d}: {d}\n", .{i,jp});
+  std.debug.print("{d}:\t{d}\t{d}ms\n", .{i+1,jp,millis});
     }
     return sum;
 }
