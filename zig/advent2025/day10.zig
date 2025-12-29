@@ -92,9 +92,27 @@ fn countJoltPushes(allocator0: Allocator, m: *const Machine) !u32 {
     var allocator = arena.allocator();
     const nbutt = m.buttons.len;
     const njolt = m.joltages.len;
-    const sbutts: []u16 = try allocator.alloc(u16, nbutt);
-    std.mem.copyForwards(u16, sbutts, m.buttons);
-    std.mem.sort(u16, sbutts, {}, cmpByBitCount);
+    const mbutts: []u16 = try allocator.alloc(u16, nbutt);
+    std.mem.copyForwards(u16, mbutts, m.buttons);
+    std.mem.sort(u16, mbutts, {}, cmpByBitCount);
+
+    const sbutts: [][]usize = try allocator.alloc([]usize, nbutt);
+    for (0..nbutt) |i| {
+        const mbutt = mbutts[i];
+        sbutts[i] = try allocator.alloc(usize, countBits(mbutt));
+        var mask: u16 = 1;
+        var j: usize = 0;
+        for (0..15) |ibit| {
+            if (mbutt & mask != 0) {
+                sbutts[i][j] = ibit;
+                j += 1;
+            }
+            mask = mask << 1;
+        }
+        // not really necessary
+        std.debug.assert(sbutts[i].len == countBits(mbutt));
+    }
+
     const pushes: []u32 = try allocator.alloc(u32, nbutt);
     const jolts: []u32 = try allocator.alloc(u32, njolt);
     @memset(pushes, 0);
@@ -102,13 +120,10 @@ fn countJoltPushes(allocator0: Allocator, m: *const Machine) !u32 {
     var ibutt: usize = 0;
     while (true) {
         const butt = sbutts[ibutt];
-//std.debug.print("butt: {x}   \t", .{butt});
         const pmax = maxPushes(butt, jolts, m.joltages);
         if (pmax > 0) {
             pushes[ibutt] = pmax;
-//std.debug.print("pmax: {d}\n", .{pmax});
             pushButton(butt, pmax, jolts);
-//std.debug.print("{any} -> {any}\n", .{pushes, jolts});
         }
         if (ibutt == nbutt-1) {
             if (std.mem.eql(u32, jolts, m.joltages)) {
@@ -130,7 +145,6 @@ fn countJoltPushes(allocator0: Allocator, m: *const Machine) !u32 {
                     }
                 }
                 pushButtons(sbutts, pushes, jolts);
-//std.debug.print("{any} -> {any}\n", .{pushes, jolts});
             }
         }
         else {
@@ -140,43 +154,39 @@ fn countJoltPushes(allocator0: Allocator, m: *const Machine) !u32 {
     unreachable;
 }
 
-fn pushButton(butt: u16, npush: u32, jolts: []u32) void {
-    var mask: u16 = 1;
-    for (0..15) |i| {
-        if (butt & mask != 0) {
-            jolts[i] += npush;
-        }
-        mask = mask << 1;
+fn pushButton(butt: []usize, npush: u32, jolts: []u32) void {
+    for (butt) |i| {
+        jolts[i] += npush;
     }
 }
 
-fn pushButtons(butts: []u16, pushes: []u32, jolts: []u32) void {
+fn pushButtons(butts: [][]usize, pushes: []u32, jolts: []u32) void {
     @memset(jolts, 0);
     for (butts, pushes) |b, p| {
         pushButton(b, p, jolts);
     }
 }
 
-fn maxPushes(butt: u16, c_jolts: []const u32, t_jolts: []const u32) u32 {
-    var mask: u16 = 1;
+fn maxPushes(butt: []usize, c_jolts: []const u32, t_jolts: []const u32) u32 {
     var maxdiff: ?u32 = null;
-    for (0..15) |i| {
-        if (butt & mask != 0) {
-            const diff = t_jolts[i] - c_jolts[i];
-            if (maxdiff) |m| {
-                maxdiff = @min(m, diff);
-            }
-            else {
-                maxdiff = diff;
-            }
+    for (butt) |i| {
+        const diff = t_jolts[i] - c_jolts[i];
+        if (maxdiff) |m| {
+            maxdiff = @min(m, diff);
         }
-        mask = mask << 1;
+        else {
+            maxdiff = diff;
+        }
     }
     return maxdiff.?;
 }
 
 fn cmpByBitCount(context: void, b1: u16, b2: u16) bool {
     return std.sort.desc(u16)(context, countBits(b1), countBits(b2));
+}
+
+fn cmpByLen(context: void, b1: []usize, b2: []usize) bool {
+    return std.sort.desc([]usize)(context, b1.len, b2.len);
 }
 
 const Machine = struct {
