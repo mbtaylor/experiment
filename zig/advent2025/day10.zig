@@ -24,8 +24,12 @@ pub fn main() !void {
 
     const p1 = part1(machines);
     std.debug.print("Part 1: {d}\n", .{p1});
-    const p2 = try part2(allocator, machines);
-    std.debug.print("Part 2: {d}\n", .{p2});
+
+    // Hopeless.  I thought this might complete in a reasonable time,
+    // but for some of the inputs it's more than a day.  Give up.
+//  const p2 = try part2(allocator, machines);
+//  std.debug.print("Part 2: {d}\n", .{p2});
+    std.debug.print("Part 2: {s}\n", .{"Give up."});
 }
 
 pub fn part1(machines: []const Machine) u32 {
